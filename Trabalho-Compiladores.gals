@@ -12,18 +12,36 @@ Parser = SLR
 #RegularDefinitions
 
 #Tokens
-// COMENTARIOS
+// COMENTÁRIOS
 MULTI_LINE_COMMENT: [/]\*[^ "*/" ]*\*[/]
 ONE_LINE_COMMENT: [/][/][^\n]*
 
 // PALAVRAS RESERVADAS
-INT: \-?[0-9]+
-FLOAT: \-?[0-9]+.[0-9]+
-BOOL: true | false
+// Não podem ser usadas p/ variaveis
+INT_KEYWORD: "int"
+FLOAT_KEYWORD: "float"
+DOUBLE_KEYWORD: "double"
+CHAR_KEYWORD: "char"
+BOOL_KEYWORD: "bool"
+IF_KEYWORD: "if"
+ELSE_KEYWORD: "else"
+WHILE_KEYWORD: "while"
+FOR_KEYWORD: "for"
+RETURN_KEYWORD: "return"
+
+// LITERAIS
+// O tipo de dado, definido pelas regras
+INT_LITERAL: 0[bB][01]+ | 0[xX][0-9a-fA-F]+ | [0-9]+
+FLOAT_LITERAL: [0-9]+\.[0-9]* | \.[0-9]+[fF]?
+CHAR_LITERAL: '([^'\\]|\\[\\'\"tnr])'
+// STRING_LITERAL: \"([^"\\]|\\[\\'"tnr])*\" // NÃO ESTÁ FUNCIONANDO
+BOOL_LITERAL: true | false
+NULL_LITERAL: nullptr
 
 // OPERADORES
 LOGICAL_OP: "&&" | "||" | "!"
 BITWISE_OP: ">>" | "<<" | "&" | "|" | "~" | "^"
+
 IDENTIFIER:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]
 
 // Ignore
