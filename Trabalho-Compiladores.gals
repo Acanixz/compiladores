@@ -12,16 +12,23 @@ Parser = SLR
 #RegularDefinitions
 
 #Tokens
+// COMENTARIOS
+MULTI_LINE_COMMENT: [/]\*[^ "*/" ]*\*[/]
+ONE_LINE_COMMENT: [/][/][^\n]*
+
+// PALAVRAS RESERVADAS
 INT: \-?[0-9]+
 FLOAT: \-?[0-9]+.[0-9]+
 BOOL: true | false
-STRING: "(.|\n)*"
+
+// OPERADORES
 LOGICAL_OP: "&&" | "||" | "!"
 BITWISE_OP: ">>" | "<<" | "&" | "|" | "~" | "^"
 IDENTIFIER:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]
 
-
-
+// Ignore
+// Espaço, Whiteline
+:[\ \n]
 #NonTerminals
 
 #Grammar
