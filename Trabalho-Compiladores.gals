@@ -39,13 +39,50 @@ STRING_LITERAL: \"([^\"\\]|\\.)*\\?\"
 BOOL_LITERAL: true | false
 NULL_LITERAL: nullptr
 
-// OPERADORES
-ARITHMETIC_OP: "+" | "-" | "*" | "/" | "%" | "++" | "--"
-RELATIONAL_OP: "<" | ">" | "<=" | ">=" | "==" | "!="
-LOGICAL_OP: "&&" | "||" | "!"
-BITWISE_OP: ">>" | "<<" | "&" | "|" | "~" | "^"
+// OPERADORES ARITMÉTICOS
+PLUS: "+"
+MINUS: "-"
+TIMES: "*"
+DIVIDE: /
+MODULO: %
+INCREMENT: "++"
+DECREMENT: "--"
 
-IDENTIFIER:[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9]
+// OPERADORES RELACIONAIS
+EQUAL: ==
+NOT_EQUAL: !=
+GREATER: >
+LESS: <
+GREATER_EQUAL: >=
+LESS_EQUAL: <=
+
+// OPERADORES LÓGICOS
+LOGICAL_AND: &&
+LOGICAL_OR: "||"
+LOGICAL_NOT: !
+
+// OPERADORES BIT A BIT
+BITWISE_AND: &
+BITWISE_OR: "|"
+BITWISE_XOR: "^"
+BITWISE_NOT: ~
+LEFT_SHIFT: <<
+RIGHT_SHIFT: >>
+
+// IDENTIFICADOR
+IDENTIFIER: [a-zA-Z0-9_]*[a-zA-Z0-9]
+
+// DELIMITADORES E PONTUADORES
+DOT: "."
+SEMICOLON: ;
+COLON: :
+COMMA: ,
+LEFT_PARENTHESIS: "("
+RIGHT_PARENTHESIS: ")"
+LEFT_BRACKET: "["
+RIGHT_BRACKET: "]"
+LEFT_BRACE: "{"
+RIGHT_BRACE: }
 
 // Ignore
 // Espaço, Whiteline
