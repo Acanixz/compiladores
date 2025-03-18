@@ -1,7 +1,7 @@
 #Options
 GenerateScanner = true
 GenerateParser = true
-Language = Java
+Language = C++
 ScannerName = Lexico
 ParserName = Sintatico
 SemanticName = Semantico
@@ -18,11 +18,12 @@ ONE_LINE_COMMENT: [/][/][^\n]*
 
 // PALAVRAS RESERVADAS
 // Não podem ser usadas p/ variaveis
+BOOL_KEYWORD: "bool"
 INT_KEYWORD: "int"
 FLOAT_KEYWORD: "float"
 DOUBLE_KEYWORD: "double"
 CHAR_KEYWORD: "char"
-BOOL_KEYWORD: "bool"
+STRING_KEYWORD: "string"
 IF_KEYWORD: "if"
 ELSE_KEYWORD: "else"
 WHILE_KEYWORD: "while"
@@ -34,11 +35,13 @@ RETURN_KEYWORD: "return"
 INT_LITERAL: 0[bB][01]+ | 0[xX][0-9a-fA-F]+ | [0-9]+
 FLOAT_LITERAL: [0-9]+\.[0-9]* | \.[0-9]+[fF]?
 CHAR_LITERAL: '([^'\\]|\\[\\'\"tnr])'
-// STRING_LITERAL: \"([^"\\]|\\[\\'"tnr])*\" // NÃO ESTÁ FUNCIONANDO
+STRING_LITERAL: \"([^\"\\]|\\.)*\\?\"
 BOOL_LITERAL: true | false
 NULL_LITERAL: nullptr
 
 // OPERADORES
+ARITHMETIC_OP: "+" | "-" | "*" | "/" | "%" | "++" | "--"
+RELATIONAL_OP: "<" | ">" | "<=" | ">=" | "==" | "!="
 LOGICAL_OP: "&&" | "||" | "!"
 BITWISE_OP: ">>" | "<<" | "&" | "|" | "~" | "^"
 
