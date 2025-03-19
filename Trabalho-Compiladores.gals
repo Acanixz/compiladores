@@ -12,6 +12,10 @@ Parser = SLR
 #RegularDefinitions
 
 #Tokens
+// Comentários:
+// - MULTI_LINE_COMMENT com conflito com os Operadores Aritméticos
+// - IDENTIFIER permitindo criação de variável iniciando com número
+
 // COMENTÁRIOS
 MULTI_LINE_COMMENT: [/]\*[^ "*/" ]*\*[/]
 ONE_LINE_COMMENT: [/][/][^\n]*
