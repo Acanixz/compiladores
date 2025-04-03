@@ -1,0 +1,93 @@
+#Options
+GenerateScanner = true
+GenerateParser = true
+Language = C++
+ScannerName = Lexico
+ParserName = Sintatico
+SemanticName = Semantico
+ScannerCaseSensitive = true
+ScannerTable = Full
+Input = String
+Parser = SLR
+#RegularDefinitions
+
+#Tokens
+// COMENTÁRIOS
+MULTI_LINE_COMMENT: [/]\*[^ "*/" ]*\*[/]
+ONE_LINE_COMMENT: [/][/][^\n]*
+
+// PALAVRAS RESERVADAS
+// Não podem ser usadas p/ variaveis
+BOOL_KEYWORD: "bool"
+INT_KEYWORD: "int"
+FLOAT_KEYWORD: "float"
+DOUBLE_KEYWORD: "double"
+CHAR_KEYWORD: "char"
+STRING_KEYWORD: "string"
+IF_KEYWORD: "if"
+ELSE_KEYWORD: "else"
+WHILE_KEYWORD: "while"
+FOR_KEYWORD: "for"
+RETURN_KEYWORD: "return"
+
+// LITERAIS
+// O tipo de dado, definido pelas regras
+INT_LITERAL: 0[bB][01]+ | 0[xX][0-9a-fA-F]+ | [0-9]+
+FLOAT_LITERAL: [0-9]+\.[0-9]* | \.[0-9]+[fF]?
+CHAR_LITERAL: '([^'\\]|\\[\\'\"tnr])'
+STRING_LITERAL: \"([^\"\\]|\\.)*\\?\"
+BOOL_LITERAL: true | false
+NULL_LITERAL: nullptr
+
+// OPERADORES ARITMÉTICOS
+PLUS: "+"
+MINUS: "-"
+TIMES: "*"
+DIVIDE: /
+MODULO: %
+INCREMENT: "++"
+DECREMENT: "--"
+
+// OPERADORES RELACIONAIS E ATRIBUIÇÃO
+EQUAL: =
+EQUALS: ==
+NOT_EQUALS: !=
+GREATER: >
+LESS: <
+GREATER_OR_EQUALS: >=
+LESS_OR_EQUALS: <=
+
+// OPERADORES LÓGICOS
+LOGICAL_AND: &&
+LOGICAL_OR: "||"
+LOGICAL_NOT: !
+
+// OPERADORES BIT A BIT
+BITWISE_AND: &
+BITWISE_OR: "|"
+BITWISE_XOR: "^"
+BITWISE_NOT: ~
+LEFT_SHIFT: <<
+RIGHT_SHIFT: >>
+
+// IDENTIFICADOR
+IDENTIFIER: [a-zA-Z0-9_]*[a-zA-Z0-9]
+
+// DELIMITADORES E PONTUADORES
+DOT: "."
+SEMICOLON: ;
+COLON: :
+COMMA: ,
+LEFT_PARENTHESIS: "("
+RIGHT_PARENTHESIS: ")"
+LEFT_BRACKET: "["
+RIGHT_BRACKET: "]"
+LEFT_BRACE: "{"
+RIGHT_BRACE: }
+
+// Ignore
+// Espaço, Whiteline
+:[\ \n]
+#NonTerminals
+
+#Grammar
