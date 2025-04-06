@@ -95,5 +95,14 @@ RIGHT_BRACE: }
 // Espaço, Whiteline
 :[\ \n]
 #NonTerminals
-
+<lista_comandos>
+<comando>
+<declaracao_bool>
+<tipo_variavel>
 #Grammar
+<lista_comandos> ::= <lista_comandos><comando> | <comando>;
+<comando> ::= <declaracao_bool>;
+
+<declaracao_bool> ::= BOOL_KEYWORD IDENTIFIER EQUAL BOOL_LITERAL SEMICOLON;
+
+<tipo_variavel> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD | DOUBLE_KEYWORD | CHAR_KEYWORD | STRING_KEYWORD;
