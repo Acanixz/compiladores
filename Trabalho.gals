@@ -14,6 +14,7 @@ Parser = SLR
 #Tokens
 // Comentários:
 // - MULTI_LINE_COMMENT com conflito com os Operadores Aritméticos
+// - Declaração para o vetor na gramática (declaracao_vetor e proximas 2 linhas) não parece funcionar corretamente no Web GALS, algum bug com os simbolos GREATER and LESS quando fecham
 
 // COMENTÁRIOS
 MULTI_LINE_COMMENT: [/]\*[^ "*/" ]*\*[/]
@@ -21,11 +22,12 @@ ONE_LINE_COMMENT: [/][/][^\n]*
 
 // PALAVRAS RESERVADAS
 // Não podem ser usadas p/ variaveis
+VECTOR_KEYWORD: "vector"
 BOOL_KEYWORD: "bool"
-VOID_KEYWORD: "void"
+VOID_KEYWORD: "void" # Nota: Não usado em literais
 INT_KEYWORD: "int"
 FLOAT_KEYWORD: "float"
-DOUBLE_KEYWORD: "double"
+DOUBLE_KEYWORD: "double" # Nota: Não usado em literais
 CHAR_KEYWORD: "char"
 STRING_KEYWORD: "string"
 IF_KEYWORD: "if"
@@ -89,20 +91,56 @@ RIGHT_PARENTHESIS: ")"
 LEFT_BRACKET: "["
 RIGHT_BRACKET: "]"
 LEFT_BRACE: "{"
-RIGHT_BRACE: }
+RIGHT_BRACE: "}"
 
 // Ignore
 // Espaço, Whiteline
 :[\ \n]
 #NonTerminals
 <lista_comandos>
+<lista_comandos_escopo>
 <comando>
+<declaracao_variavel>
 <declaracao_bool>
+<declaracao_var_bool>
+<declaracao_int>
+<declaracao_var_int>
+<declaracao_float>
+<declaracao_var_float>
+<declaracao_char>
+<declaracao_var_char>
+<declaracao_string>
+<declaracao_var_string>
+<declaracao_vector>
+<valores_iniciais>
+<valor_literal>
 <tipo_variavel>
 #Grammar
-<lista_comandos> ::= <lista_comandos><comando> | <comando>;
-<comando> ::= <declaracao_bool>;
+<lista_comandos> ::= <lista_comandos><comando> | <comando> | <lista_comandos_escopo>;
+<lista_comandos_escopo> ::= LEFT_BRACE <comando> RIGHT_BRACE | LEFT_BRACE <lista_comandos><comando> RIGHT_BRACE;
 
-<declaracao_bool> ::= BOOL_KEYWORD IDENTIFIER EQUAL BOOL_LITERAL SEMICOLON;
+<comando> ::= <declaracao_variavel>;
+
+<declaracao_variavel> ::= <declaracao_bool> | <declaracao_int> | <declaracao_float> | <declaracao_char> | <declaracao_string>;
+
+<declaracao_bool> ::= BOOL_KEYWORD <declaracao_var_bool> SEMICOLON;
+<declaracao_var_bool> ::= IDENTIFIER EQUAL BOOL_LITERAL | IDENTIFIER EQUAL BOOL_LITERAL COMMA <declaracao_var_bool>;
+
+<declaracao_int> ::= INT_KEYWORD <declaracao_var_int> SEMICOLON;
+<declaracao_var_int> ::= IDENTIFIER EQUAL INT_LITERAL | IDENTIFIER EQUAL INT_LITERAL COMMA <declaracao_var_int>;
+
+<declaracao_float> ::= FLOAT_KEYWORD <declaracao_var_float> SEMICOLON;
+<declaracao_var_float> ::= IDENTIFIER EQUAL FLOAT_LITERAL | IDENTIFIER EQUAL FLOAT_LITERAL COMMA <declaracao_var_float>;
+
+<declaracao_char> ::= CHAR_KEYWORD <declaracao_var_char> SEMICOLON;
+<declaracao_var_char> ::= IDENTIFIER EQUAL CHAR_LITERAL | IDENTIFIER EQUAL CHAR_LITERAL COMMA <declaracao_var_char>;
+
+<declaracao_string> ::= STRING_KEYWORD <declaracao_var_string> SEMICOLON;
+<declaracao_var_string> ::= IDENTIFIER EQUAL STRING_LITERAL | IDENTIFIER EQUAL STRING_LITERAL COMMA <declaracao_var_string>;
+
+<declaracao_vector> ::= VECTOR_KEYWORD LESS <tipo_variavel> GREATER IDENTIFIER EQUAL LEFT_BRACE <valores_iniciais> RIGHT_BRACE SEMICOLON;
+<valores_iniciais> ::= <valor_literal> | <valor_literal> COMMA <valores_iniciais>;
+<valor_literal> ::= INT_LITERAL | FLOAT_LITERAL | CHAR_LITERAL | STRING_LITERAL | BOOL_LITERAL;
+
 
 <tipo_variavel> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD | DOUBLE_KEYWORD | CHAR_KEYWORD | STRING_KEYWORD;
