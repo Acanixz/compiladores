@@ -1,7 +1,7 @@
 #Options
 GenerateScanner = true
 GenerateParser = true
-Language = C++
+Language = Java
 ScannerName = Lexico
 ParserName = Sintatico
 SemanticName = Semantico
