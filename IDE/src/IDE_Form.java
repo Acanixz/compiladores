@@ -4,6 +4,11 @@ import java.awt.event.ActionListener;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
+import GALS.AnalysisError;
+import GALS.Lexico;
+import GALS.Sintatico;
+import GALS.Semantico;
+
 public class IDE_Form extends JFrame{
     private JButton compileBtn;
     private JLabel compileResLabel;
@@ -28,12 +33,16 @@ public class IDE_Form extends JFrame{
 
                 try {
 
-                    // TODO: Adicionar código Java do GALS p/ realizar compilação da TextArea
+                    Lexico lex = new Lexico();
+                    Sintatico sint = new Sintatico();
+                    Semantico sem = new Semantico();
+
+                    lex.setInput(window.codeField.getText());
+                    sint.parse(lex, sem);
 
                     window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);
-                } catch (Exception ex) {
-                    // TODO: Tratar exceptions geradas pelo GALS corretamente após adicionar compilador
-                    window.compileResLabel.setText("Erro de compilação | " + timeString);
+                } catch (AnalysisError err) {
+                    window.compileResLabel.setText("Erro de compilação | " + err.getMessage() + " | "  + timeString);
                 }
             }
         });
