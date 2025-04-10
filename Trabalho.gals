@@ -35,6 +35,7 @@ ELSE_KEYWORD: "else"
 WHILE_KEYWORD: "while"
 FOR_KEYWORD: "for"
 RETURN_KEYWORD: "return"
+COUT_KEYWORD: "cout"
 
 // LITERAIS
 // O tipo de dado, definido pelas regras
@@ -100,17 +101,51 @@ RIGHT_BRACE: "}"
 <lista_comandos>
 <keyword_tipo>
 <keyword_literal>
+<exp>
+<exp1>
+<exp2>
+<exp3>
+<exp4>
+<exp5>
+<exp6>
+<exp7>
+<exp8>
+<exp9>
+<exp10>
+<op_rel>
+<op_neg>
+<op_bitwise>
+<op_arit_baixa>
+<op_arit_alta>
 <lista_comandos_escopo>
 <comando>
 <declaracao_variavel>
 <declaracao_var_id>
 <declaracao_var_value>
 <chamada_cout>
-<c1>
-<c2>
+<cout1>
+<cout2>
 #Grammar
 <keyword_tipo> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD | DOUBLE_KEYWORD | CHAR_KEYWORD | STRING_KEYWORD;
 <keyword_literal> ::= BOOL_LITERAL | INT_LITERAL | FLOAT_LITERAL| CHAR_LITERAL | STRING_LITERAL;
+
+<exp>  ::= <exp> LOGICAL_OR <exp1> | <exp1>;
+<exp1> ::= <exp1> LOGICAL_AND <exp2> | <exp2>;
+<exp2> ::= <exp2> BITWISE_OR <exp3> | <exp3>;
+<exp3> ::= <exp3> BITWISE_XOR <exp4> | <exp4>;
+<exp4> ::= <exp4> BITWISE_AND <exp5> | <exp5>;
+<exp5> ::= <exp5> <op_rel> <exp6> | <exp6>;
+<exp6> ::= <exp6> <op_bitwise> <exp7> | <exp7>;
+<exp7> ::= <exp7> <op_arit_baixa> <exp8> | <exp8>;
+<exp8> ::= <exp8> <op_arit_alta> <exp9> | <exp9> ;
+<exp9> ::= <op_neg> <exp10> | <exp10>;
+<exp10> ::= INT_LITERAL | FLOAT_LITERAL | IDENTIFIER | LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS;
+
+<op_rel> ::= GREATER | LESS | GREATER_OR_EQUALS | LESS_OR_EQUALS | EQUALS | NOT_EQUALS; 
+<op_neg> ::= MINUS | BITWISE_NOT | LOGICAL_NOT;
+<op_bitwise> ::= LEFT_SHIFT | RIGHT_SHIFT;
+<op_arit_baixa> ::= PLUS | MINUS;
+<op_arit_alta> ::= TIMES | DIVIDE | MODULO;
 
 
 <lista_comandos> ::= <lista_comandos><comando> | <comando> | <lista_comandos_escopo>;
@@ -121,9 +156,9 @@ RIGHT_BRACE: "}"
 
 <declaracao_variavel> ::= <keyword_tipo> <declaracao_var_id> EQUAL <declaracao_var_value> SEMICOLON;
 <declaracao_var_id> ::= IDENTIFIER | IDENTIFIER COMMA <declaracao_var_id>;
-<declaracao_var_value> ::= <keyword_literal> | <keyword_literal> COMMA <declaracao_var_value>;
+<declaracao_var_value> ::= <exp> | <exp> COMMA <declaracao_var_value>;
 
 
-<chamada_cout> ::= COUT_KEYWORD LEFT_SHIFT <c1> SEMICOLON;
-<c1> ::= <c2> | <c2> LEFT_SHIFT <c1>;
-<c2> ::= <keyword_literal> | IDENTIFIER;
+<chamada_cout> ::= COUT_KEYWORD LEFT_SHIFT <cout1> SEMICOLON;
+<cout1> ::= <cout2> | <cout2> LEFT_SHIFT <cout1>;
+<cout2> ::= <exp> | <keyword_literal>;
