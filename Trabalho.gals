@@ -98,49 +98,32 @@ RIGHT_BRACE: "}"
 :[\ \n]
 #NonTerminals
 <lista_comandos>
+<keyword_tipo>
+<keyword_literal>
 <lista_comandos_escopo>
 <comando>
 <declaracao_variavel>
-<declaracao_bool>
-<declaracao_var_bool>
-<declaracao_int>
-<declaracao_var_int>
-<declaracao_float>
-<declaracao_var_float>
-<declaracao_char>
-<declaracao_var_char>
-<declaracao_string>
-<declaracao_var_string>
-<declaracao_vector>
-<valores_iniciais>
-<valor_literal>
-<tipo_variavel>
+<declaracao_var_id>
+<declaracao_var_value>
+<chamada_cout>
+<c1>
+<c2>
 #Grammar
+<keyword_tipo> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD | DOUBLE_KEYWORD | CHAR_KEYWORD | STRING_KEYWORD;
+<keyword_literal> ::= BOOL_LITERAL | INT_LITERAL | FLOAT_LITERAL| CHAR_LITERAL | STRING_LITERAL;
+
+
 <lista_comandos> ::= <lista_comandos><comando> | <comando> | <lista_comandos_escopo>;
 <lista_comandos_escopo> ::= LEFT_BRACE <comando> RIGHT_BRACE | LEFT_BRACE <lista_comandos><comando> RIGHT_BRACE;
 
-<comando> ::= <declaracao_variavel>;
-
-<declaracao_variavel> ::= <declaracao_bool> | <declaracao_int> | <declaracao_float> | <declaracao_char> | <declaracao_string>;
-
-<declaracao_bool> ::= BOOL_KEYWORD <declaracao_var_bool> SEMICOLON;
-<declaracao_var_bool> ::= IDENTIFIER EQUAL BOOL_LITERAL | IDENTIFIER EQUAL BOOL_LITERAL COMMA <declaracao_var_bool>;
-
-<declaracao_int> ::= INT_KEYWORD <declaracao_var_int> SEMICOLON;
-<declaracao_var_int> ::= IDENTIFIER EQUAL INT_LITERAL | IDENTIFIER EQUAL INT_LITERAL COMMA <declaracao_var_int>;
-
-<declaracao_float> ::= FLOAT_KEYWORD <declaracao_var_float> SEMICOLON;
-<declaracao_var_float> ::= IDENTIFIER EQUAL FLOAT_LITERAL | IDENTIFIER EQUAL FLOAT_LITERAL COMMA <declaracao_var_float>;
-
-<declaracao_char> ::= CHAR_KEYWORD <declaracao_var_char> SEMICOLON;
-<declaracao_var_char> ::= IDENTIFIER EQUAL CHAR_LITERAL | IDENTIFIER EQUAL CHAR_LITERAL COMMA <declaracao_var_char>;
-
-<declaracao_string> ::= STRING_KEYWORD <declaracao_var_string> SEMICOLON;
-<declaracao_var_string> ::= IDENTIFIER EQUAL STRING_LITERAL | IDENTIFIER EQUAL STRING_LITERAL COMMA <declaracao_var_string>;
-
-<declaracao_vector> ::= VECTOR_KEYWORD LESS <tipo_variavel> GREATER IDENTIFIER EQUAL LEFT_BRACE <valores_iniciais> RIGHT_BRACE SEMICOLON;
-<valores_iniciais> ::= <valor_literal> | <valor_literal> COMMA <valores_iniciais>;
-<valor_literal> ::= INT_LITERAL | FLOAT_LITERAL | CHAR_LITERAL | STRING_LITERAL | BOOL_LITERAL;
+<comando> ::= <declaracao_variavel> | <chamada_cout>;
 
 
-<tipo_variavel> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD | DOUBLE_KEYWORD | CHAR_KEYWORD | STRING_KEYWORD;
+<declaracao_variavel> ::= <keyword_tipo> <declaracao_var_id> EQUAL <declaracao_var_value> SEMICOLON;
+<declaracao_var_id> ::= IDENTIFIER | IDENTIFIER COMMA <declaracao_var_id>;
+<declaracao_var_value> ::= <keyword_literal> | <keyword_literal> COMMA <declaracao_var_value>;
+
+
+<chamada_cout> ::= COUT_KEYWORD LEFT_SHIFT <c1> SEMICOLON;
+<c1> ::= <c2> | <c2> LEFT_SHIFT <c1>;
+<c2> ::= <keyword_literal> | IDENTIFIER;
