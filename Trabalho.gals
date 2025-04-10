@@ -13,7 +13,6 @@ Parser = SLR
 
 #Tokens
 // Comentários:
-// - MULTI_LINE_COMMENT com conflito com os Operadores Aritméticos
 // - Declaração para o vetor na gramática (declaracao_vetor e proximas 2 linhas) não parece funcionar corretamente no Web GALS, algum bug com os simbolos GREATER and LESS quando fecham
 
 // COMENTÁRIOS
@@ -35,6 +34,7 @@ ELSE_KEYWORD: "else"
 WHILE_KEYWORD: "while"
 FOR_KEYWORD: "for"
 RETURN_KEYWORD: "return"
+CIN_KEYWORD: "cin"
 COUT_KEYWORD: "cout"
 
 // LITERAIS
@@ -80,7 +80,7 @@ LEFT_SHIFT: <<
 RIGHT_SHIFT: >>
 
 // IDENTIFICADOR
-IDENTIFIER: [a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z0-9]
+IDENTIFIER: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
 
 // DELIMITADORES E PONTUADORES
 DOT: "."
@@ -117,14 +117,20 @@ RIGHT_BRACE: "}"
 <op_bitwise>
 <op_arit_baixa>
 <op_arit_alta>
-<lista_comandos_escopo>
 <comando>
+<lista_comandos_escopo>
 <declaracao_variavel>
 <declaracao_var_id>
 <declaracao_var_value>
+<variavel1>
+<chamada_cin>
 <chamada_cout>
 <cout1>
 <cout2>
+<chamada_if>
+<chamada_else_if>
+<chamada_else>
+<if2>
 #Grammar
 <keyword_tipo> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD | DOUBLE_KEYWORD | CHAR_KEYWORD | STRING_KEYWORD;
 <keyword_literal> ::= BOOL_LITERAL | INT_LITERAL | FLOAT_LITERAL| CHAR_LITERAL | STRING_LITERAL;
@@ -148,17 +154,26 @@ RIGHT_BRACE: "}"
 <op_arit_alta> ::= TIMES | DIVIDE | MODULO;
 
 
+<comando> ::= <declaracao_variavel> | <chamada_cin> | <chamada_cout> | <chamada_if>;
 <lista_comandos> ::= <lista_comandos><comando> | <comando> | <lista_comandos_escopo>;
 <lista_comandos_escopo> ::= LEFT_BRACE <comando> RIGHT_BRACE | LEFT_BRACE <lista_comandos><comando> RIGHT_BRACE;
 
-<comando> ::= <declaracao_variavel> | <chamada_cout>;
 
-
-<declaracao_variavel> ::= <keyword_tipo> <declaracao_var_id> EQUAL <declaracao_var_value> SEMICOLON;
+<declaracao_variavel> ::= <keyword_tipo> <declaracao_var_id> <variavel1> SEMICOLON;
 <declaracao_var_id> ::= IDENTIFIER | IDENTIFIER COMMA <declaracao_var_id>;
 <declaracao_var_value> ::= <exp> | <exp> COMMA <declaracao_var_value>;
+<variavel1> ::= î | EQUAL <declaracao_var_value>;
+
+
+<chamada_cin> ::= CIN_KEYWORD RIGHT_SHIFT IDENTIFIER SEMICOLON;
 
 
 <chamada_cout> ::= COUT_KEYWORD LEFT_SHIFT <cout1> SEMICOLON;
 <cout1> ::= <cout2> | <cout2> LEFT_SHIFT <cout1>;
 <cout2> ::= <exp> | <keyword_literal>;
+
+
+<chamada_if> ::= IF_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo> <if2>;
+<chamada_else_if> ::= ELSE_KEYWORD IF_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo> <if2>;
+<chamada_else> ::= ELSE_KEYWORD <lista_comandos_escopo>;
+<if2> ::= î | <chamada_else_if> | <chamada_else>;
