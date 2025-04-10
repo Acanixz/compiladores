@@ -73,8 +73,22 @@ public class Lexico implements Constants
 
     private int nextState(char c, int state)
     {
-        int next = SCANNER_TABLE[state][c];
-        return next;
+        int start = SCANNER_TABLE_INDEXES[state];
+        int end   = SCANNER_TABLE_INDEXES[state+1]-1;
+
+        while (start <= end)
+        {
+            int half = (start+end)/2;
+
+            if (SCANNER_TABLE[half][0] == c)
+                return SCANNER_TABLE[half][1];
+            else if (SCANNER_TABLE[half][0] < c)
+                start = half+1;
+            else  //(SCANNER_TABLE[half][0] > c)
+                end = half-1;
+        }
+
+        return -1;
     }
 
     private int tokenForState(int state)

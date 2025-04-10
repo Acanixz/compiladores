@@ -17,7 +17,7 @@ Parser = SLR
 // - Declaração para o vetor na gramática (declaracao_vetor e proximas 2 linhas) não parece funcionar corretamente no Web GALS, algum bug com os simbolos GREATER and LESS quando fecham
 
 // COMENTÁRIOS
-MULTI_LINE_COMMENT: [/]\*[^ "*/" ]*\*[/]
+MULTI_LINE_COMMENT: /\*([^\*]|[\r\n]|(\*+([^\*/]|[\r\n])))*\*/
 ONE_LINE_COMMENT: [/][/][^\n]*
 
 // PALAVRAS RESERVADAS

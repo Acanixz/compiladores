@@ -4,10 +4,7 @@ import java.awt.event.ActionListener;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-import GALS.AnalysisError;
-import GALS.Lexico;
-import GALS.Sintatico;
-import GALS.Semantico;
+import GALS.*;
 
 public class IDE_Form extends JFrame{
     private JButton compileBtn;
@@ -41,8 +38,14 @@ public class IDE_Form extends JFrame{
                     sint.parse(lex, sem);
 
                     window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);
-                } catch (AnalysisError err) {
-                    window.compileResLabel.setText("Erro de compilação | " + err.getMessage() + " | "  + timeString);
+                } catch (LexicalError err) {
+                    window.compileResLabel.setText("Erro lexico na posição " + err.getPosition() + " | "  + timeString);
+                }
+                catch (SyntacticError err) {
+                    window.compileResLabel.setText("Erro Sintatico na posição " + err.getPosition() + " | "  + timeString);
+                }
+                catch (SemanticError err) {
+                    window.compileResLabel.setText("Erro Semantico na posição " + err.getPosition() + " | "  + timeString);
                 }
             }
         });
