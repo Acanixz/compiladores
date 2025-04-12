@@ -106,7 +106,10 @@ RIGHT_BRACE: "}"
 // Espaço, Whiteline
 :[\ \n]
 #NonTerminals
+<inicio>
 <lista_comandos>
+<lista_comandos_escopo>
+<comando>
 <keyword_tipo>
 <keyword_literal>
 <dado>
@@ -121,13 +124,13 @@ RIGHT_BRACE: "}"
 <exp8>
 <exp9>
 <exp10>
+<exp_vetor>
+<exp_id_vetor>
 <op_rel>
 <op_neg>
 <op_bitwise>
 <op_arit_baixa>
 <op_arit_alta>
-<comando>
-<lista_comandos_escopo>
 <declaracao_variavel>
 <declaracao_var_id>
 <declaracao_var_value>
@@ -141,19 +144,27 @@ RIGHT_BRACE: "}"
 <chamada_push_back_vetor>
 <chamada_size_vetor>
 <posicao_vetor>
-<posicao1>
 <chamada_cin>
 <chamada_cout>
-<cout1>
-<cout2>
-<endl>
+<tamanho_relativo_cout>
+<valor_cout>
+<tipo_sinal_cout>
 <chamada_if>
 <chamada_else_if>
 <chamada_else>
-<if1>
+<tamanho_relativo_if>
 <chamada_return>
-<return1>
+<valor_return>
 #Grammar
+<inicio> ::= <lista_comandos> | <lista_comandos_escopo>;
+
+
+<lista_comandos> ::= <lista_comandos><comando> | <comando>;
+<lista_comandos_escopo> ::= LEFT_BRACE <lista_comandos> RIGHT_BRACE;
+
+<comando> ::= <declaracao_variavel> | <declaracao_vetor> | <chamada_cin> | <chamada_cout> | <chamada_if> | <chamada_push_back_vetor> | <chamada_size_vetor> | <posicao_vetor> | <chamada_return>;
+
+
 <keyword_tipo> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD | DOUBLE_KEYWORD | CHAR_KEYWORD | STRING_KEYWORD;
 <keyword_literal> ::= BOOL_LITERAL | INT_LITERAL | FLOAT_LITERAL| CHAR_LITERAL | STRING_LITERAL;
 <dado> ::= IDENTIFIER | <keyword_literal>;
@@ -169,18 +180,17 @@ RIGHT_BRACE: "}"
 <exp7> ::= <exp7> <op_arit_baixa> <exp8> | <exp8>;
 <exp8> ::= <exp8> <op_arit_alta> <exp9> | <exp9> ;
 <exp9> ::= <op_neg> <exp10> | <exp10>;
-<exp10> ::= INT_LITERAL | FLOAT_LITERAL | IDENTIFIER | LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS;
+<exp10> ::= INT_LITERAL | FLOAT_LITERAL | CHAR_LITERAL | STRING_LITERAL | IDENTIFIER | <exp_vetor> | LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS;
+
+<exp_vetor> ::= IDENTIFIER LEFT_BRACKET <exp_id_vetor> RIGHT_BRACKET;
+<exp_id_vetor> ::= IDENTIFIER | INT_LITERAL;
+
 
 <op_rel> ::= GREATER | LESS | GREATER_OR_EQUALS | LESS_OR_EQUALS | EQUALS | NOT_EQUALS; 
 <op_neg> ::= MINUS | BITWISE_NOT | LOGICAL_NOT;
 <op_bitwise> ::= LEFT_SHIFT | RIGHT_SHIFT;
 <op_arit_baixa> ::= PLUS | MINUS;
 <op_arit_alta> ::= TIMES | DIVIDE | MODULO;
-
-
-<comando> ::= <declaracao_variavel> | <declaracao_vetor> | <chamada_cin> | <chamada_cout> | <chamada_if> | <chamada_push_back_vetor> | <chamada_size_vetor> | <posicao_vetor> | <chamada_return>;
-<lista_comandos> ::= <lista_comandos><comando> | <comando> | <lista_comandos_escopo>;
-<lista_comandos_escopo> ::= LEFT_BRACE <comando> RIGHT_BRACE | LEFT_BRACE <lista_comandos><comando> RIGHT_BRACE;
 
 
 <declaracao_variavel> ::= <keyword_tipo> <declaracao_var_id> <variavel1> SEMICOLON;
@@ -191,31 +201,30 @@ RIGHT_BRACE: "}"
 
 <declaracao_vetor> ::= VECTOR_KEYWORD LESS <keyword_tipo> GREATER IDENTIFIER <vetor1> SEMICOLON;
 <vetor1> ::= î | EQUAL LEFT_BRACE <vetor3> RIGHT_BRACE | LEFT_PARENTHESIS <vetor2> RIGHT_PARENTHESIS;
-<vetor2> ::= <dado> | <dado> COMMA <dado>;
-<vetor3> ::= <vetor2> | <vetor2><vetor3>;
+<vetor2> ::= <dado> | <dado> COMMA <vetor2>;
+<vetor3> ::= <vetor2> | <vetor3><vetor2>;
 
 <nome_vetor> ::= IDENTIFIER DOT;
 <argumento> ::= LEFT_PARENTHESIS <dado> RIGHT_PARENTHESIS;
 
 <chamada_push_back_vetor> ::= <nome_vetor> PUSH_BACK_KEYWORD <argumento> SEMICOLON;
 <chamada_size_vetor> ::= <nome_vetor> SIZE_KEYWORD <argumento> SEMICOLON;
-<posicao_vetor> ::= IDENTIFIER LEFT_BRACKET <posicao1> RIGHT_BRACKET SEMICOLON;
-<posicao1> ::= <dado> | <exp>;
+<posicao_vetor> ::= IDENTIFIER LEFT_BRACKET <exp7> RIGHT_BRACKET SEMICOLON;
+
 
 <chamada_cin> ::= CIN_KEYWORD RIGHT_SHIFT IDENTIFIER SEMICOLON;
 
+<chamada_cout> ::= COUT_KEYWORD LEFT_SHIFT <tamanho_relativo_cout> SEMICOLON;
+<tamanho_relativo_cout> ::= <valor_cout> | <valor_cout> <tipo_sinal_cout> <tamanho_relativo_cout>;
+<valor_cout> ::= <exp7> | ENDL_KEYWORD | BOOL_LITERAL;
+<tipo_sinal_cout> ::= LEFT_SHIFT | PLUS;
 
-<chamada_cout> ::= COUT_KEYWORD LEFT_SHIFT <cout1> SEMICOLON;
-<cout1> ::= <cout2> | <cout2> LEFT_SHIFT <cout1>;
-<cout2> ::= <exp> | <keyword_literal> | <endl>;
-<endl> ::= ENDL_KEYWORD;
 
-
-<chamada_if> ::= IF_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo> <if1>;
-<chamada_else_if> ::= ELSE_KEYWORD IF_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo> <if1>;
+<chamada_if> ::= IF_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo> <tamanho_relativo_if>;
+<chamada_else_if> ::= ELSE_KEYWORD IF_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo> <tamanho_relativo_if>;
 <chamada_else> ::= ELSE_KEYWORD <lista_comandos_escopo>;
-<if1> ::= î | <chamada_else_if> | <chamada_else>;
+<tamanho_relativo_if> ::= î | <chamada_else_if> | <chamada_else>;
 
 
-<chamada_return> ::= RETURN_KEYWORD <return1> SEMICOLON;
-<return1> ::= î | <dado> | <exp>;
+<chamada_return> ::= RETURN_KEYWORD <valor_return> SEMICOLON;
+<valor_return> ::= î | BOOL_LITERAL | <exp7>;
