@@ -6,7 +6,7 @@ ScannerName = Lexico
 ParserName = Sintatico
 SemanticName = Semantico
 ScannerCaseSensitive = true
-ScannerTable = Full
+ScannerTable = Compact
 Input = String
 Parser = SLR
 #RegularDefinitions
