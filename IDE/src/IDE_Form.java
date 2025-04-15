@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalTime;
@@ -11,6 +12,27 @@ public class IDE_Form extends JFrame{
     private JLabel compileResLabel;
     private JTextArea codeField;
     private JPanel mainPanel;
+
+    private static String getPositionInfo(int position, JTextArea textArea) {
+        int lineNum = 0;
+        int columnNum = 0;
+
+        try {
+            lineNum = textArea.getLineOfOffset(position);
+            int lineStart = textArea.getLineStartOffset(lineNum);
+            columnNum = position - lineStart;
+            lineNum += 1; // Convert to 1-based numbering
+        } catch (Exception e) {
+            return "Posicao: " + position;
+        }
+        return "Linha: " + lineNum + ", Coluna: " + columnNum;
+    }
+
+    private static void mostrarErro(int position, JTextArea textArea) {
+        textArea.setCaretPosition(position);
+        textArea.grabFocus();
+        textArea.select(position, position + 1);
+    }
 
     public static void main(String[] args){
         IDE_Form window = new IDE_Form();
@@ -39,13 +61,19 @@ public class IDE_Form extends JFrame{
 
                     window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);
                 } catch (LexicalError err) {
-                    window.compileResLabel.setText("Erro lexico na posição " + err.getPosition() + " | "  + timeString);
+                    String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    window.compileResLabel.setText("Erro lexico na " + posicao + " | "  + timeString);
+                    mostrarErro(err.getPosition(), window.codeField);
                 }
                 catch (SyntacticError err) {
-                    window.compileResLabel.setText("Erro Sintatico na posição " + err.getPosition() + " | "  + timeString);
+                    String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    window.compileResLabel.setText("Erro sintatico na " + posicao + " | "  + timeString);
+                    mostrarErro(err.getPosition(), window.codeField);
                 }
                 catch (SemanticError err) {
-                    window.compileResLabel.setText("Erro Semantico na posição " + err.getPosition() + " | "  + timeString);
+                    String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    window.compileResLabel.setText("Erro semantico na " + posicao + " | "  + timeString);
+                    mostrarErro(err.getPosition(), window.codeField);
                 }
             }
         });
