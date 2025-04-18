@@ -113,6 +113,11 @@ RIGHT_BRACE: "}"
 <quantidade_comandos>
 <atributo_definicao>
 <ponteiro>
+<vazio_exp>
+<lista_exps>
+<lista_vetor>
+<escopo_vetor>
+<tipo_vetor>
 <comando>
 <tipo_keyword>
 <tipo_literal>
@@ -132,18 +137,24 @@ RIGHT_BRACE: "}"
 <op_bitwise>
 <op_arit_baixa>
 <op_arit_alta>
-<declaracao_variavel>
-<definicao_valor_variavel>
-<lista_ids>
-<lista_exps>
-<chamada_new>
-<tipo_variavel>
-<exps_new>
 <chamada_vetor>
-<declaracao_vetor>
+<vazio_vetor>
+<declaracao_variavel>
+<lista_ids>
+<tipo_variavel>
+<definicao_valor_variavel>
 <definicao_valor_vetor>
-<lista_valores>
-<valor>
+<valor_escopo_vetor>
+<new_exps>
+<chamada_new>
+<declaracao_funcao>
+<quantidade_parametros>
+<lista_parametros>
+<parametro>
+<lista_vetores>
+<escopo_vetor_vazio>
+<chamada_funcao>
+<quantidade_argumentos>
 <chamada_while>
 <chamada_for>
 <parametro_1>
@@ -165,22 +176,12 @@ RIGHT_BRACE: "}"
 <chamada_case>
 <chamada_default>
 <chamada_break>
-<declaracao_funcao>
-<tipo_funcao>
-<quantidade_parametros>
-<lista_parametros>
-<parametro>
-<valor_parametro_vetor>
-<chamada_funcao>
-<quantidade_argumentos>
-<lista_argumentos>
 <chamada_cin>
 <chamada_cout>
 <lista_elementos>
 <elemento>
 <atribuicao>
 <chamada_return>
-<valor_return>
 #Grammar
 // ==================== ESTRUTURA PRINCIPAL ====================
 <inicio> ::= <lista_comandos> | <lista_comandos_escopo>;
@@ -188,12 +189,20 @@ RIGHT_BRACE: "}"
 <lista_comandos_escopo> ::= LEFT_BRACE <quantidade_comandos> RIGHT_BRACE;
 <quantidade_comandos> ::= î | <lista_comandos>;
 
+// ====================== COMANDOS GERAIS ======================
 <atributo_definicao> ::= î | STATIC_KEYWORD | CONST_KEYWORD;
 <ponteiro> ::= î | TIMES | BITWISE_AND;
 
+<vazio_exp> ::= î | <exp>;
+<lista_exps> ::= <exp> | <exp> COMMA <lista_exps>;
+
+<lista_vetor> ::= <escopo_vetor> | <escopo_vetor> <lista_vetor>;
+<escopo_vetor> ::= LEFT_BRACKET <exp> RIGHT_BRACKET;
+<tipo_vetor> ::= î | <escopo_vetor>;
+
 // ========================== COMANDOS =========================
 <comando> ::= <declaracao_variavel>
-            | <declaracao_vetor>
+            | <declaracao_funcao>
             | <chamada_while>
             | <chamada_for>
             | <chamada_do_while>
@@ -201,10 +210,10 @@ RIGHT_BRACE: "}"
             | <chamada_switch>
             | <chamada_cin>
             | <chamada_cout>
-            | <atribuicao>
-            | <declaracao_funcao>
+            | <chamada_funcao> SEMICOLON
             | <chamada_new>
-            | <chamada_return>;
+            | <chamada_return>
+            | <atribuicao>;
 
 // ======================= TIPOS E DADOS =======================
 <tipo_keyword> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD 
@@ -238,25 +247,36 @@ RIGHT_BRACE: "}"
 <op_arit_alta> ::= TIMES | DIVIDE | MODULO;
 
 // ========================= VARIÁVEIS =========================
-<declaracao_variavel> ::= <atributo_definicao> <tipo_keyword> <ponteiro> <lista_ids> <definicao_valor_variavel> SEMICOLON;
-<definicao_valor_variavel> ::= î | EQUAL <exps_new>;
+<chamada_vetor> ::= IDENTIFIER <lista_vetor>;
+<vazio_vetor> ::= IDENTIFIER LEFT_BRACKET RIGHT_BRACKET | IDENTIFIER <lista_vetor>;
 
-<lista_ids> ::= IDENTIFIER | IDENTIFIER COMMA <lista_ids>;
-<lista_exps> ::= <exp> | <exp> COMMA <lista_exps>;
+<declaracao_variavel> ::= <atributo_definicao> <tipo_keyword> <ponteiro> <lista_ids> SEMICOLON;
 
-<chamada_new> ::= NEW_KEYWORD <tipo_variavel>;
-<tipo_variavel> ::= <tipo_keyword> | <tipo_keyword> LEFT_BRACKET <exp7> RIGHT_BRACKET;
+<lista_ids> ::= <tipo_variavel> | <tipo_variavel> COMMA <lista_ids>;
 
-<exps_new> ::= <chamada_new> | <lista_exps>;
+<tipo_variavel> ::= IDENTIFIER <definicao_valor_variavel> | <vazio_vetor> <definicao_valor_vetor>;
+<definicao_valor_variavel> ::= î | EQUAL <new_exps>;
+<definicao_valor_vetor> ::= î | EQUAL <escopo_vetor>;
 
-// ========================== VETORES ==========================
-<chamada_vetor> ::= IDENTIFIER LEFT_BRACKET <exp7> RIGHT_BRACKET;
+<escopo_vetor> ::= LEFT_BRACE <valor_escopo_vetor> RIGHT_BRACE;
+<valor_escopo_vetor> ::= LEFT_BRACE <lista_exps> RIGHT_BRACE | LEFT_BRACE <lista_exps> RIGHT_BRACE COMMA <valor_escopo_vetor> | <escopo_vetor>;
 
-<declaracao_vetor> ::= <atributo_definicao> <tipo_keyword> <ponteiro> <chamada_vetor> <definicao_valor_vetor> SEMICOLON;
-<definicao_valor_vetor> ::= î | EQUAL LEFT_BRACE <lista_valores> RIGHT_BRACE;
+<new_exps> ::= <chamada_new> | <exp>;
+<chamada_new> ::= NEW_KEYWORD <tipo_keyword> <tipo_vetor>;
 
-<lista_valores> ::= <valor> | <valor> COMMA <lista_valores>;
-<valor> ::= IDENTIFIER | <tipo_literal>;
+// ========================== FUNÇÕES ==========================
+<declaracao_funcao> ::= <atributo_definicao> <tipo_keyword> <ponteiro> IDENTIFIER LEFT_PARENTHESIS <quantidade_parametros> RIGHT_PARENTHESIS <lista_comandos_escopo>
+                      | <atributo_definicao>  VOID_KEYWORD  <ponteiro> IDENTIFIER LEFT_PARENTHESIS <quantidade_parametros> RIGHT_PARENTHESIS <lista_comandos_escopo>;
+
+<quantidade_parametros> ::= î | <lista_parametros>;
+<lista_parametros> ::= <parametro> | <parametro> COMMA <lista_parametros>;
+<parametro> ::= <tipo_keyword> <ponteiro> IDENTIFIER
+              | <tipo_keyword> <ponteiro> IDENTIFIER <lista_vetores>;
+<lista_vetores> ::= <escopo_vetor_vazio> | <escopo_vetor_vazio> <lista_vetores>;
+<escopo_vetor_vazio> ::= LEFT_BRACKET <vazio_exp> RIGHT_BRACKET;
+
+<chamada_funcao> ::= IDENTIFIER LEFT_PARENTHESIS <quantidade_argumentos> RIGHT_PARENTHESIS;
+<quantidade_argumentos> ::= î | <lista_exps>;
 
 // ===================== LAÇOS DE REPITIÇÃO ====================
 // Pré-testado
@@ -265,7 +285,7 @@ RIGHT_BRACE: "}"
 // Pré-testado com variáveis de controle [inicialização e pós-operação]
 <chamada_for> ::= FOR_KEYWORD LEFT_PARENTHESIS <parametro_1> SEMICOLON <parametro_2> SEMICOLON <parametro_3> RIGHT_PARENTHESIS <lista_comandos_escopo>;
 <parametro_1> ::= î | <tipo_literal> | <tipo_keyword> IDENTIFIER <definicao_valor_parametro>;
-<parametro_2> ::= î | <exp>;
+<parametro_2> ::= <vazio_exp>;
 <parametro_3> ::= <parametro_2> | IDENTIFIER <increment_decrement>;
 <increment_decrement> ::= INCREMENT | DECREMENT;
 <definicao_tipo_numero> ::= BOOL_LITERAL | INT_LITERAL | FLOAT_LITERAL;
@@ -299,32 +319,14 @@ RIGHT_BRACE: "}"
 
 <chamada_break> ::= BREAK_KEYWORD SEMICOLON;
 
-// ========================== FUNÇÕES ==========================
-<declaracao_funcao> ::= <atributo_definicao> <tipo_keyword> <ponteiro> IDENTIFIER LEFT_PARENTHESIS <quantidade_parametros> RIGHT_PARENTHESIS <lista_comandos_escopo>;
-<tipo_funcao> ::= VOID_KEYWORD | <tipo_keyword>;
-<quantidade_parametros> ::= î | <lista_parametros>;
-<lista_parametros> ::= <parametro> | <parametro> COMMA <lista_parametros>;
-<parametro> ::= <tipo_keyword> <ponteiro> IDENTIFIER
-              | <tipo_keyword> <ponteiro> IDENTIFIER LEFT_BRACKET <valor_parametro_vetor> RIGHT_BRACKET;
-              
-<valor_parametro_vetor> ::= î | <exp>;
-
-<chamada_funcao> ::= IDENTIFIER LEFT_PARENTHESIS <quantidade_argumentos> RIGHT_PARENTHESIS;
-
-<quantidade_argumentos> ::= î | <lista_argumentos>;
-
-<lista_argumentos> ::= <exp> | <exp> COMMA <lista_argumentos>;
-
 // ============================ I/O ============================
-<chamada_cin> ::= CIN_KEYWORD RIGHT_SHIFT IDENTIFIER SEMICOLON;
+<chamada_cin> ::= CIN_KEYWORD RIGHT_SHIFT IDENTIFIER <tipo_vetor> SEMICOLON;
 
 <chamada_cout> ::= COUT_KEYWORD LEFT_SHIFT <lista_elementos> SEMICOLON;
 <lista_elementos> ::= <elemento> | <elemento> LEFT_SHIFT <lista_elementos>;
 <elemento> ::= <exp7> | ENDL_KEYWORD;
 
 // ==================== ATRIBUIÇÃO E RETORNO ===================
-<atribuicao> ::= IDENTIFIER EQUAL <exp> SEMICOLON   // Variável
-               | IDENTIFIER LEFT_BRACKET <exp> RIGHT_BRACKET EQUAL <exp> SEMICOLON;  // Vetor
+<atribuicao> ::= IDENTIFIER <tipo_vetor> EQUAL <exp> SEMICOLON;
 
-<chamada_return> ::= RETURN_KEYWORD <valor_return> SEMICOLON;
-<valor_return> ::= î | <exp>;
+<chamada_return> ::= RETURN_KEYWORD <vazio_exp> SEMICOLON;
