@@ -12,6 +12,11 @@ public class IDE_Form extends JFrame{
     private JLabel compileResLabel;
     private JTextArea codeField;
     private JPanel mainPanel;
+    private JTabbedPane tabbedPane1;
+    private JPanel warnPanel;
+    private JPanel symbolsPanel;
+    private JList warnList;
+    private JTable symbolsList;
 
     private static String getPositionInfo(int position, JTextArea textArea) {
         int lineNum = 0;
@@ -59,19 +64,23 @@ public class IDE_Form extends JFrame{
                     lex.setInput(window.codeField.getText());
                     sint.parse(lex, sem);
 
+                    window.compileResLabel.setForeground(new Color(0, 100, 0));
                     window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);
                 } catch (LexicalError err) {
                     String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    window.compileResLabel.setForeground(Color.RED);
                     window.compileResLabel.setText("Erro lexico na " + posicao + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
                 catch (SyntacticError err) {
                     String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    window.compileResLabel.setForeground(Color.RED);
                     window.compileResLabel.setText("Erro sintatico na " + posicao + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
                 catch (SemanticError err) {
                     String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    window.compileResLabel.setForeground(Color.RED);
                     window.compileResLabel.setText("Erro semantico na " + posicao + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
