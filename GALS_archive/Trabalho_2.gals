@@ -1,0 +1,330 @@
+#Options
+GenerateScanner = true
+GenerateParser = true
+Language = Java
+ScannerName = Lexico
+ParserName = Sintatico
+SemanticName = Semantico
+ScannerCaseSensitive = true
+ScannerTable = Compact
+Input = String
+Parser = SLR
+#RegularDefinitions
+
+#Tokens
+// COMENTÁRIOS
+MULTI_LINE_COMMENT: /\*([^\*]|[\r\n]|(\*+([^\*/]|[\r\n])))*\*/
+ONE_LINE_COMMENT: [/][/][^\n]*
+
+// PALAVRAS RESERVADAS
+// Não podem ser usadas p/ variaveis
+BOOL_KEYWORD: "bool"
+VOID_KEYWORD: "void" // Nota: Não usado em literais
+INT_KEYWORD: "int"
+FLOAT_KEYWORD: "float"
+DOUBLE_KEYWORD: "double" // Nota: Não usado em literais
+CHAR_KEYWORD: "char"
+STRING_KEYWORD: "string"
+IF_KEYWORD: "if"
+ELSE_KEYWORD: "else"
+SWITCH_KEYWORD: "switch"
+CASE_KEYWORD: "case"
+BREAK_KEYWORD: "break"
+DEFAULT_KEYWORD: "default"
+DO_KEYWORD: "do"
+WHILE_KEYWORD: "while"
+FOR_KEYWORD: "for"
+RETURN_KEYWORD: "return"
+CIN_KEYWORD: "cin"
+COUT_KEYWORD: "cout"
+
+STATIC_KEYWORD: "static"
+CONST_KEYWORD: "const"
+NEW_KEYWORD: "new"
+
+// COMANDOS UTILITÁRIOS
+ENDL_KEYWORD: "endl"
+RETURN_KEYWORD: "return"
+
+// LITERAIS
+// O tipo de dado, definido pelas regras
+INT_LITERAL: 0[bB][01]+ | 0[xX][0-9a-fA-F]+ | [0-9]+
+FLOAT_LITERAL: [0-9]+\.[0-9]* | \.[0-9]+[fF]?
+CHAR_LITERAL: '([^'\\]|\\[\\'\"tnr])'
+STRING_LITERAL: \"([^\"\\]|\\.)*\\?\"
+BOOL_LITERAL: true | false
+NULL_LITERAL: nullptr
+
+// OPERADORES ARITMÉTICOS
+PLUS: "+"
+MINUS: "-"
+TIMES: "*"
+DIVIDE: /
+MODULO: %
+INCREMENT: "++"
+DECREMENT: "--"
+
+// ATRIBUIÇÃO
+EQUAL: =
+
+// OPERADORES RELACIONAIS
+EQUALS: ==
+NOT_EQUALS: !=
+GREATER: >
+LESS: <
+GREATER_OR_EQUALS: >=
+LESS_OR_EQUALS: <=
+
+// OPERADORES LÓGICOS
+LOGICAL_AND: &&
+LOGICAL_OR: "||"
+LOGICAL_NOT: !
+
+// OPERADORES BIT A BIT
+BITWISE_AND: &
+BITWISE_OR: "|"
+BITWISE_XOR: "^"
+BITWISE_NOT: ~
+LEFT_SHIFT: <<
+RIGHT_SHIFT: >>
+
+// IDENTIFICADOR
+IDENTIFIER: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
+
+// DELIMITADORES E PONTUADORES
+DOT: "."
+SEMICOLON: ;
+COLON: :
+COMMA: ,
+LEFT_PARENTHESIS: "("
+RIGHT_PARENTHESIS: ")"
+LEFT_BRACKET: "["
+RIGHT_BRACKET: "]"
+LEFT_BRACE: "{"
+RIGHT_BRACE: "}"
+
+// Ignore
+// Espaço, Whiteline
+:[\ \n\t]
+#NonTerminals
+<inicio>
+<lista_comandos>
+<lista_comandos_escopo>
+<quantidade_comandos>
+<atributo_definicao>
+<ponteiro>
+<comando>
+<tipo_keyword>
+<tipo_literal>
+<exp>
+<exp1>
+<exp2>
+<exp3>
+<exp4>
+<exp5>
+<exp6>
+<exp7>
+<exp8>
+<exp9>
+<exp10>
+<op_rel>
+<op_neg>
+<op_bitwise>
+<op_arit_baixa>
+<op_arit_alta>
+<declaracao_variavel>
+<definicao_valor_variavel>
+<lista_ids>
+<lista_exps>
+<chamada_new>
+<tipo_variavel>
+<exps_new>
+<chamada_vetor>
+<declaracao_vetor>
+<definicao_valor_vetor>
+<lista_valores>
+<valor>
+<chamada_while>
+<chamada_for>
+<parametro_1>
+<parametro_2>
+<parametro_3>
+<increment_decrement>
+<definicao_tipo_numero>
+<definicao_valor_parametro>
+<chamada_do_while>
+<chamada_if>
+<chamada_else_if>
+<chamada_else>
+<else>
+<chamada_switch>
+<lista_comandos_switch>
+<lista_comandos_escopo_switch>
+<quantidade_comandos_switch>
+<comando_switch>
+<chamada_case>
+<chamada_default>
+<chamada_break>
+<declaracao_funcao>
+<tipo_funcao>
+<quantidade_parametros>
+<lista_parametros>
+<parametro>
+<valor_parametro_vetor>
+<chamada_funcao>
+<quantidade_argumentos>
+<lista_argumentos>
+<chamada_cin>
+<chamada_cout>
+<lista_elementos>
+<elemento>
+<atribuicao>
+<chamada_return>
+<valor_return>
+#Grammar
+// ==================== ESTRUTURA PRINCIPAL ====================
+<inicio> ::= <lista_comandos> | <lista_comandos_escopo>;
+<lista_comandos> ::= <comando> | <comando> <lista_comandos>;
+<lista_comandos_escopo> ::= LEFT_BRACE <quantidade_comandos> RIGHT_BRACE;
+<quantidade_comandos> ::= î | <lista_comandos>;
+
+<atributo_definicao> ::= î | STATIC_KEYWORD | CONST_KEYWORD;
+<ponteiro> ::= î | TIMES | BITWISE_AND;
+
+// ========================== COMANDOS =========================
+<comando> ::= <declaracao_variavel>
+            | <declaracao_vetor>
+            | <chamada_while>
+            | <chamada_for>
+            | <chamada_do_while>
+            | <chamada_if>
+            | <chamada_switch>
+            | <chamada_cin>
+            | <chamada_cout>
+            | <atribuicao>
+            | <declaracao_funcao>
+            | <chamada_new>
+            | <chamada_return>;
+
+// ======================= TIPOS E DADOS =======================
+<tipo_keyword> ::= BOOL_KEYWORD | INT_KEYWORD | FLOAT_KEYWORD 
+                 | DOUBLE_KEYWORD | CHAR_KEYWORD | STRING_KEYWORD;
+                 
+<tipo_literal> ::= BOOL_LITERAL | INT_LITERAL | FLOAT_LITERAL
+                 | CHAR_LITERAL | STRING_LITERAL;
+
+// ========================= EXPRESSÕES ========================
+<exp>  ::= <exp> LOGICAL_OR <exp1> | <exp1>;
+<exp1> ::= <exp1> LOGICAL_AND <exp2> | <exp2>;
+<exp2> ::= <exp2> BITWISE_OR <exp3> | <exp3>;
+<exp3> ::= <exp3> BITWISE_XOR <exp4> | <exp4>;
+<exp4> ::= <exp4> BITWISE_AND <exp5> | <exp5>;
+<exp5> ::= <exp5> <op_rel> <exp6> | <exp6>;
+<exp6> ::= <exp6> <op_bitwise> <exp7> | <exp7>;
+<exp7> ::= <exp7> <op_arit_baixa> <exp8> | <exp8>;
+<exp8> ::= <exp8> <op_arit_alta> <exp9> | <exp9> ;
+<exp9> ::= <op_neg> <exp10> | <exp10>;
+<exp10> ::= <tipo_literal> 
+          | <chamada_vetor>
+          | <chamada_funcao> 
+          | IDENTIFIER 
+          | LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS;
+
+// ========================= OPERADORES ========================
+<op_rel> ::= GREATER | LESS | GREATER_OR_EQUALS | LESS_OR_EQUALS | EQUALS | NOT_EQUALS; 
+<op_neg> ::= MINUS | BITWISE_NOT | LOGICAL_NOT;
+<op_bitwise> ::= LEFT_SHIFT | RIGHT_SHIFT;
+<op_arit_baixa> ::= PLUS | MINUS;
+<op_arit_alta> ::= TIMES | DIVIDE | MODULO;
+
+// ========================= VARIÁVEIS =========================
+<declaracao_variavel> ::= <atributo_definicao> <tipo_keyword> <ponteiro> <lista_ids> <definicao_valor_variavel> SEMICOLON;
+<definicao_valor_variavel> ::= î | EQUAL <exps_new>;
+
+<lista_ids> ::= IDENTIFIER | IDENTIFIER COMMA <lista_ids>;
+<lista_exps> ::= <exp> | <exp> COMMA <lista_exps>;
+
+<chamada_new> ::= NEW_KEYWORD <tipo_variavel>;
+<tipo_variavel> ::= <tipo_keyword> | <tipo_keyword> LEFT_BRACKET <exp7> RIGHT_BRACKET;
+
+<exps_new> ::= <chamada_new> | <lista_exps>;
+
+// ========================== VETORES ==========================
+<chamada_vetor> ::= IDENTIFIER LEFT_BRACKET <exp7> RIGHT_BRACKET;
+
+<declaracao_vetor> ::= <atributo_definicao> <tipo_keyword> <ponteiro> <chamada_vetor> <definicao_valor_vetor> SEMICOLON;
+<definicao_valor_vetor> ::= î | EQUAL LEFT_BRACE <lista_valores> RIGHT_BRACE;
+
+<lista_valores> ::= <valor> | <valor> COMMA <lista_valores>;
+<valor> ::= IDENTIFIER | <tipo_literal>;
+
+// ===================== LAÇOS DE REPITIÇÃO ====================
+// Pré-testado
+<chamada_while> ::= WHILE_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo>;
+
+// Pré-testado com variáveis de controle [inicialização e pós-operação]
+<chamada_for> ::= FOR_KEYWORD LEFT_PARENTHESIS <parametro_1> SEMICOLON <parametro_2> SEMICOLON <parametro_3> RIGHT_PARENTHESIS <lista_comandos_escopo>;
+<parametro_1> ::= î | <tipo_literal> | <tipo_keyword> IDENTIFIER <definicao_valor_parametro>;
+<parametro_2> ::= î | <exp>;
+<parametro_3> ::= <parametro_2> | IDENTIFIER <increment_decrement>;
+<increment_decrement> ::= INCREMENT | DECREMENT;
+<definicao_tipo_numero> ::= BOOL_LITERAL | INT_LITERAL | FLOAT_LITERAL;
+<definicao_valor_parametro> ::= î | EQUAL <tipo_literal>;
+
+// Pós-testado
+<chamada_do_while> ::= DO_KEYWORD <lista_comandos_escopo> WHILE_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS SEMICOLON;
+
+// ===================== CONTROLE DE FLUXO =====================
+// IF
+<chamada_if> ::= IF_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo> <else>;
+<chamada_else_if> ::= ELSE_KEYWORD IF_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo> <else>;
+<chamada_else> ::= ELSE_KEYWORD <lista_comandos_escopo>;
+<else> ::= î | <chamada_else_if> | <chamada_else>;
+
+// SWITCH
+<chamada_switch> ::= SWITCH_KEYWORD LEFT_PARENTHESIS <exp> RIGHT_PARENTHESIS <lista_comandos_escopo_switch>;
+
+<lista_comandos_switch> ::= <comando_switch> | <comando_switch> <lista_comandos_switch>;
+<lista_comandos_escopo_switch> ::= LEFT_BRACE <quantidade_comandos_switch> RIGHT_BRACE;
+<quantidade_comandos_switch> ::= î | <lista_comandos_switch>;
+
+<comando_switch> ::= <comando> 
+                   | <chamada_case>
+                   | <chamada_default>
+                   | <chamada_break>;
+
+<chamada_case> ::= CASE_KEYWORD <exp> COLON;
+
+<chamada_default> ::= DEFAULT_KEYWORD COLON;
+
+<chamada_break> ::= BREAK_KEYWORD SEMICOLON;
+
+// ========================== FUNÇÕES ==========================
+<declaracao_funcao> ::= <atributo_definicao> <tipo_keyword> <ponteiro> IDENTIFIER LEFT_PARENTHESIS <quantidade_parametros> RIGHT_PARENTHESIS <lista_comandos_escopo>;
+<tipo_funcao> ::= VOID_KEYWORD | <tipo_keyword>;
+<quantidade_parametros> ::= î | <lista_parametros>;
+<lista_parametros> ::= <parametro> | <parametro> COMMA <lista_parametros>;
+<parametro> ::= <tipo_keyword> <ponteiro> IDENTIFIER
+              | <tipo_keyword> <ponteiro> IDENTIFIER LEFT_BRACKET <valor_parametro_vetor> RIGHT_BRACKET;
+              
+<valor_parametro_vetor> ::= î | <exp>;
+
+<chamada_funcao> ::= IDENTIFIER LEFT_PARENTHESIS <quantidade_argumentos> RIGHT_PARENTHESIS;
+
+<quantidade_argumentos> ::= î | <lista_argumentos>;
+
+<lista_argumentos> ::= <exp> | <exp> COMMA <lista_argumentos>;
+
+// ============================ I/O ============================
+<chamada_cin> ::= CIN_KEYWORD RIGHT_SHIFT IDENTIFIER SEMICOLON;
+
+<chamada_cout> ::= COUT_KEYWORD LEFT_SHIFT <lista_elementos> SEMICOLON;
+<lista_elementos> ::= <elemento> | <elemento> LEFT_SHIFT <lista_elementos>;
+<elemento> ::= <exp7> | ENDL_KEYWORD;
+
+// ==================== ATRIBUIÇÃO E RETORNO ===================
+<atribuicao> ::= IDENTIFIER EQUAL <exp> SEMICOLON   // Variável
+               | IDENTIFIER LEFT_BRACKET <exp> RIGHT_BRACKET EQUAL <exp> SEMICOLON;  // Vetor
+
+<chamada_return> ::= RETURN_KEYWORD <valor_return> SEMICOLON;
+<valor_return> ::= î | <exp>;
