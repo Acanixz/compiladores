@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,10 +15,52 @@ public class IDE_Form extends JFrame{
     private JPanel mainPanel;
     private JTabbedPane tabbedPane1;
     private JPanel warnPanel;
-    private JPanel symbolsPanel;
     private JList warnList;
     private JTable symbolsList;
 
+    // Coleta todos os simbolos dos escopos
+    private java.util.List<Simbolo> coletarSimbolos(Escopo escopoGlobal) {
+        java.util.List<Simbolo> todosSimbolos = new java.util.ArrayList<>();
+        percorrerEscopos(escopoGlobal, todosSimbolos);
+        return todosSimbolos;
+    }
+
+    private void percorrerEscopos(Escopo escopoAtual, java.util.List<Simbolo> lista) {
+        // Adiciona símbolos do escopo atual
+        lista.addAll(escopoAtual.getSimbolos().values());
+
+        // Percorre escopos filhos
+        for (Escopo filho : escopoAtual.children) {
+            percorrerEscopos(filho, lista);
+        }
+    }
+
+    // Atualização da tabela de simbolos
+    private void atualizarTabelaSimbolos(Escopo escopoGlobal) {
+        DefaultTableModel model = (DefaultTableModel) symbolsList.getModel();
+        model.setRowCount(0);
+        model.setColumnIdentifiers(new String[]{
+                "Nome", "Tipo", "Escopo", "Inicializada", "Usada",
+                "Parâmetro", "Pos.Parâmetro", "Vetor", "Matriz", "Função"
+        });
+
+        for (Simbolo s : coletarSimbolos(escopoGlobal)) {
+            model.addRow(new Object[]{
+                    s.nome,
+                    s.tipo != null ? s.tipo.toString() : "N/A",
+                    s.escopo != null ? s.escopo.getNome() : "Global", // Mostra o nome do escopo
+                    s.inicializada,
+                    s.usada,
+                    s.isParametro,
+                    s.parametroPosicao,
+                    s.isVetor,
+                    s.isMatriz,
+                    s.isFuncao
+            });
+        }
+    }
+
+    // Obtém linha e coluna
     private static String getPositionInfo(int position, JTextArea textArea) {
         int lineNum = 0;
         int columnNum = 0;
@@ -63,6 +106,8 @@ public class IDE_Form extends JFrame{
 
                     lex.setInput(window.codeField.getText());
                     sint.parse(lex, sem);
+
+                    window.atualizarTabelaSimbolos(sem.escopoGlobal);
 
                     window.compileResLabel.setForeground(new Color(0, 100, 0));
                     window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);

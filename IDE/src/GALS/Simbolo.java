@@ -2,19 +2,19 @@
 package GALS;
 
 public class Simbolo {
-    String nome;
-    Tipo tipo;
-    Escopo escopo;
-    boolean inicializada = false;
-    boolean usada = false;
+    public String nome;
+    public Tipo tipo;
+    public Escopo escopo;
+    public boolean inicializada = false;
+    public boolean usada = false;
 
-    boolean isParametro;
-    int parametroPosicao;
+    public boolean isParametro;
+    public int parametroPosicao;
     boolean isRef; // É parametro por referência? (&)
 
-    boolean isVetor;
-    boolean isMatriz;
-    boolean isFuncao;
+    public boolean isVetor;
+    public boolean isMatriz;
+    public boolean isFuncao;
 
     public Simbolo(String nome, Tipo tipo, Escopo escopo) {
         this.nome = nome;
