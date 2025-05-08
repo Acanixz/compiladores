@@ -3,7 +3,7 @@ package GALS;
 
 public class Simbolo {
     public String nome;
-    public Tipo tipo;
+    public Integer tipo;
     public Escopo escopo;
     public boolean inicializada = false;
     public boolean usada = false;
@@ -16,7 +16,7 @@ public class Simbolo {
     public boolean isMatriz;
     public boolean isFuncao;
 
-    public Simbolo(String nome, Tipo tipo, Escopo escopo) {
+    public Simbolo(String nome, Integer tipo, Escopo escopo) {
         this.nome = nome;
         this.tipo = tipo;
         this.inicializada = false;

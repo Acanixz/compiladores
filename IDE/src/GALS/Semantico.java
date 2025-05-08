@@ -6,27 +6,31 @@ public class Semantico implements Constants {
     public Escopo escopoGlobal = new Escopo();
     public Escopo escopoAtual = escopoGlobal;
 
-    private Tipo tipoAtual;   // tipo da declaração atual
-    private Tipo tipoExpr;    // tipo da expressão sendo avaliada
+    private int tipoAtual;   // tipo da declaração atual
+    private int tipoExpr;    // tipo da expressão sendo avaliada
+    private int[] pilhaExpr;
 
-    private static final HashMap<String, Tipo> mapaTipos = new HashMap<>();
+    private int actionPosition = -1;
+
+    private static final HashMap<String, Integer> mapaTipos = new HashMap<>();
     static {
-        mapaTipos.put("int", Tipo.INT);
-        mapaTipos.put("float", Tipo.FLOAT);
-        mapaTipos.put("bool", Tipo.BOOL);
-        mapaTipos.put("char", Tipo.CHAR);
-        mapaTipos.put("string", Tipo.STRING);
-        mapaTipos.put("void", Tipo.VOID);
+        mapaTipos.put("int", SemanticTable.INT);
+        mapaTipos.put("float", SemanticTable.FLO);
+        mapaTipos.put("bool", SemanticTable.BOO);
+        mapaTipos.put("char", SemanticTable.CHA);
+        mapaTipos.put("string", SemanticTable.STR);
     }
 
     // Interpretação das tokens
-    public void executeAction(int action, Token token) throws SemanticError {
+    public void executeAction(int action, Token token, int position) throws SemanticError {
+        actionPosition = position;
         System.out.println("Ação #" + action + ", Token: " + token);
         switch (action){
             // Define tipo
             case 1:
-                tipoAtual = mapaTipos.get(token.getLexeme());
-                if (tipoAtual == null) {
+                Object tipoAtual_tmp = mapaTipos.get(token.getLexeme());
+                tipoAtual = tipoAtual_tmp == null ? -1 : tipoAtual;
+                if (tipoAtual == -1) {
                     throw new SemanticError("Tipo não reconhecido: " + token.getLexeme());
                 }
                 break;
@@ -102,9 +106,9 @@ public class Semantico implements Constants {
         escopoAtual = escopoAtual.getParent();
     }
 
-    private void declareVariavel(String nome, Tipo tipo) throws SemanticError {
+    private void declareVariavel(String nome, Integer tipo) throws SemanticError {
         if (escopoAtual.getSimbolos().containsKey(nome)) {
-            throw new SemanticError("Variável já declarada no mesmo escopo: " + nome);
+            throw new SemanticError("Variável já declarada no mesmo escopo: " + nome, actionPosition);
         }
         Simbolo s = new Simbolo(nome, tipo, escopoAtual);
         s.inicializada = false;
@@ -114,7 +118,7 @@ public class Semantico implements Constants {
     private void usarVariavel(String nome) throws SemanticError {
         Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
         if (simbolo == null) {
-            throw new SemanticError("Variável não declarada: " + nome);
+            throw new SemanticError("Variável não declarada: " + nome, actionPosition);
         }
         simbolo.usada = true;
     }

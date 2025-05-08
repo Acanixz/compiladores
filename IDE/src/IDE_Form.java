@@ -114,19 +114,19 @@ public class IDE_Form extends JFrame{
                 } catch (LexicalError err) {
                     String posicao  = getPositionInfo(err.getPosition(), window.codeField);
                     window.compileResLabel.setForeground(Color.RED);
-                    window.compileResLabel.setText("Erro lexico na " + posicao + " | "  + timeString);
+                    window.compileResLabel.setText("Erro lexico na " + posicao + " | " + err.getMessage() + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
                 catch (SyntacticError err) {
                     String posicao  = getPositionInfo(err.getPosition(), window.codeField);
                     window.compileResLabel.setForeground(Color.RED);
-                    window.compileResLabel.setText("Erro sintatico na " + posicao + " | "  + timeString);
+                    window.compileResLabel.setText("Erro sintatico na " + posicao + " | " + err.getMessage() + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
                 catch (SemanticError err) {
                     String posicao  = getPositionInfo(err.getPosition(), window.codeField);
                     window.compileResLabel.setForeground(Color.RED);
-                    window.compileResLabel.setText("Erro semantico na " + posicao + " | "  + timeString);
+                    window.compileResLabel.setText("Erro semantico na " + posicao + " | " + err.getMessage() + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
             }
