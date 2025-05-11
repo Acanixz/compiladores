@@ -77,18 +77,22 @@ public class IDE_Form extends JFrame{
     }
 
     private static void mostrarErro(int position, JTextArea textArea) {
+        if (position < 0) return;
         textArea.setCaretPosition(position);
         textArea.grabFocus();
         textArea.select(position, position + 1);
     }
 
     public static void main(String[] args){
+        IDE_Warnings logger = IDE_Warnings.getInstance();
+
         IDE_Form window = new IDE_Form();
         window.setContentPane(window.mainPanel);
         window.setTitle("UNIVALI IDE v1.0.0");
         window.setSize(800,600);
         window.setVisible(true);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        logger.clearWarnsAndErrors();
 
         window.compileBtn.addActionListener(new ActionListener() {
             @Override
@@ -103,11 +107,17 @@ public class IDE_Form extends JFrame{
                     Lexico lex = new Lexico();
                     Sintatico sint = new Sintatico();
                     Semantico sem = new Semantico();
+                    sem.reset();
 
                     lex.setInput(window.codeField.getText());
                     sint.parse(lex, sem);
 
                     window.atualizarTabelaSimbolos(sem.escopoGlobal);
+
+                    if (!logger.getErrors().isEmpty()) {
+                        IDE_Warnings.LogEntry firstError = logger.getErrors().getFirst();
+                        throw new SemanticError(firstError.getMessage(), firstError.getPosition());
+                    }
 
                     window.compileResLabel.setForeground(new Color(0, 100, 0));
                     window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);

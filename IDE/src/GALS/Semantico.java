@@ -1,16 +1,30 @@
 package GALS;
 
 import java.util.HashMap;
+import java.util.Stack;
 
 public class Semantico implements Constants {
+    IDE_Warnings logger = IDE_Warnings.getInstance();
     public Escopo escopoGlobal = new Escopo();
     public Escopo escopoAtual = escopoGlobal;
 
-    private int tipoAtual;   // tipo da declaração atual
-    private int tipoExpr;    // tipo da expressão sendo avaliada
-    private int[] pilhaExpr;
+    private int tipoAtual = -1;   // tipo da declaração atual
+    private Stack<Integer> pilhaExpr = new Stack<>();
 
     private int actionPosition = -1;
+
+    // NÃO ESQUECER DE ADICIONAR NOVAS VARIAVEIS AQUI
+    public void reset() {
+        logger.clearWarnsAndErrors();
+
+        escopoGlobal = new Escopo();
+        escopoAtual = escopoGlobal;
+
+        tipoAtual = -1;
+        pilhaExpr.clear();
+
+        actionPosition = -1;
+    }
 
     private static final HashMap<String, Integer> mapaTipos = new HashMap<>();
     static {
@@ -29,11 +43,68 @@ public class Semantico implements Constants {
             // Define tipo
             case 1:
                 Object tipoAtual_tmp = mapaTipos.get(token.getLexeme());
-                tipoAtual = tipoAtual_tmp == null ? -1 : tipoAtual;
+                tipoAtual = tipoAtual_tmp == null ? -1 : (int) tipoAtual_tmp;
                 if (tipoAtual == -1) {
-                    throw new SemanticError("Tipo não reconhecido: " + token.getLexeme());
+                    logger.addError("Tipo não reconhecido: " + token.getLexeme(), actionPosition);
+                    return;
                 }
                 break;
+
+            case 2:
+                String lexema = token.getLexeme();
+
+                if (lexema.equals("true") || lexema.equals("false")) {
+                    System.out.println("Tipo: BOOL_LITERAL");
+                    pilhaExpr.push(SemanticTable.BOO);
+                } else if (lexema.matches("-?\\d+")) {
+                    System.out.println("Tipo: INT_LITERAL");
+                    pilhaExpr.push(SemanticTable.INT);
+                } else if (lexema.matches("-?\\d+\\.\\d+([fFdD]?)")) {
+                    System.out.println("Tipo: FLOAT_LITERAL");
+                    pilhaExpr.push(SemanticTable.FLO);
+                } else if (lexema.matches("'(\\\\[btnfr\"'\\\\]|[^\\\\])'")) {
+                    System.out.println("Tipo: CHAR_LITERAL");
+                    pilhaExpr.push(SemanticTable.CHA);
+                } else if (lexema.matches("\"(\\\\[btnfr\"'\\\\]|[^\"\\\\])*\"")) {
+                    System.out.println("Tipo: STRING_LITERAL");
+                    pilhaExpr.push(SemanticTable.STR);
+                } else {
+                    System.out.println("Literal não reconhecido na ação #2: " + lexema);
+                    pilhaExpr.push(SemanticTable.ERR); // Empilha erro, se quiser tratar depois
+                }
+                break;
+
+            case 3:
+                if (token.getLexeme().equals("+")) {
+                    pilhaExpr.push(SemanticTable.SUM);
+                } else { // "-"
+                    pilhaExpr.push(SemanticTable.SUB);
+                }
+                break;
+
+            // TIMES
+            case 4:
+                pilhaExpr.push(SemanticTable.MUL);
+                break;
+
+            // DIVIDE
+            case 5:
+                pilhaExpr.push(SemanticTable.DIV);
+                break;
+
+            // MODULO — não há ID na SemanticTable
+            case 6:
+                logger.addError("Operador '%' (MODULO) não suportado sem entry na SemanticTable", actionPosition);
+                return;
+                // Relacionais, bitwise e lógicos — todos caem em REL (igual, !=, >, <, >=, <=, &&, ||, |, ^, &)
+            case 7:
+                pilhaExpr.push(SemanticTable.REL);
+                break;
+
+            // LEFT_SHIFT / RIGHT_SHIFT — não há ID na SemanticTable
+            case 10:
+                logger.addError("Operador de deslocamento não suportado sem entry na SemanticTable", actionPosition);
+                return;
 
             // Chamada de vetor
             case 11:
@@ -90,6 +161,97 @@ public class Semantico implements Constants {
             case 68:
                 exitEscopo();
                 break;
+
+            case 69:
+                int tipoRecebido;
+
+                if (!pilhaExpr.isEmpty()) {
+                    tipoRecebido = pilhaExpr.pop();
+                } else {
+                    // Mesma lógica de inferência do case 2
+                    String lex = token.getLexeme();
+                    if (lex.equals("true") || lex.equals("false")) {
+                        tipoRecebido = SemanticTable.BOO;
+                    } else if (lex.matches("-?\\d+")) {
+                        tipoRecebido = SemanticTable.INT;
+                    } else if (lex.matches("-?\\d+\\.\\d+([fFdD]?)")) {
+                        tipoRecebido = SemanticTable.FLO;
+                    } else if (lex.matches("'(\\\\[btnfr\"'\\\\]|[^\\\\])'")) {
+                        tipoRecebido = SemanticTable.CHA;
+                    } else if (lex.matches("\"(\\\\[btnfr\"'\\\\]|[^\"\\\\])*\"")) {
+                        tipoRecebido = SemanticTable.STR;
+                    } else {
+                        logger.addError("Não foi possível inferir o tipo do valor: " + lex, actionPosition);
+                        return;
+                    }
+                }
+
+                // Usa a tabela de atribuição: destino = tipoAtual, origem = tipoRecebido
+                int comp = SemanticTable.atribType(tipoAtual, tipoRecebido);
+                if (comp == SemanticTable.ERR) {
+                    logger.addError("Atribuição inválida: não é possível atribuir "
+                            + tipoToString(tipoRecebido)
+                            + " a variável do tipo "
+                            + tipoToString(tipoAtual), actionPosition);
+                    return;
+                } else if (comp == SemanticTable.WAR) {
+                    logger.addWarning("Warning semântico: atribuição de "
+                            + tipoToString(tipoRecebido)
+                            + " a "
+                            + tipoToString(tipoAtual)
+                            + " pode resultar em perda de informação.", actionPosition);
+                }
+                break;
+
+
+            case 70:
+                // desempilha na ordem: tipoDireita, operador, tipoEsquerda
+                int tipoDireita = pilhaExpr.pop();
+                int operador    = pilhaExpr.pop();
+                int tipoEsquerda= pilhaExpr.pop();
+
+                // obtém resultado: resultType(tipoEsquerda, tipoDireita, operador)
+                int resultado = SemanticTable.resultType(tipoEsquerda, tipoDireita, operador);
+                if (resultado == SemanticTable.ERR) {
+                    logger.addError("Operação inválida entre tipos "
+                            + tipoToString(tipoEsquerda)
+                            + " e "
+                            + tipoToString(tipoDireita), actionPosition);
+                    return;
+                }
+                pilhaExpr.push(resultado);
+                break;
+
+            // —— Case 71: negação unária ——
+            case 71:
+                int tipoUn;
+                if (!pilhaExpr.isEmpty()) {
+                    tipoUn = pilhaExpr.pop();
+                } else {
+                    // infere como no case 2
+                    String lex = token.getLexeme();
+                    if (lex.equals("true") || lex.equals("false")) {
+                        tipoUn = SemanticTable.BOO;
+                    } else if (lex.matches("-?\\d+")) {
+                        tipoUn = SemanticTable.INT;
+                    } else if (lex.matches("-?\\d+\\.\\d+([fFdD]?)")) {
+                        tipoUn = SemanticTable.FLO;
+                    } else {
+                        logger.addError("Não foi possível inferir tipo para negação de: " + lex, actionPosition);
+                        return;
+                    }
+                }
+                // só int, float ou bool
+                if (tipoUn == SemanticTable.INT
+                        || tipoUn == SemanticTable.FLO
+                        || tipoUn == SemanticTable.BOO) {
+                    // tipo pós-negação é o mesmo
+                    pilhaExpr.push(tipoUn);
+                } else {
+                    logger.addError("Negação aplicada em tipo inválido: " + tipoToString(tipoUn), actionPosition);
+                    return;
+                }
+                break;
         }
     }
 
@@ -108,7 +270,8 @@ public class Semantico implements Constants {
 
     private void declareVariavel(String nome, Integer tipo) throws SemanticError {
         if (escopoAtual.getSimbolos().containsKey(nome)) {
-            throw new SemanticError("Variável já declarada no mesmo escopo: " + nome, actionPosition);
+            logger.addError("Variável já declarada no mesmo escopo: " + nome, actionPosition);
+            return;
         }
         Simbolo s = new Simbolo(nome, tipo, escopoAtual);
         s.inicializada = false;
@@ -118,8 +281,21 @@ public class Semantico implements Constants {
     private void usarVariavel(String nome) throws SemanticError {
         Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
         if (simbolo == null) {
-            throw new SemanticError("Variável não declarada: " + nome, actionPosition);
+            logger.addError("Variável não declarada: " + nome, actionPosition);
+            return;
         }
         simbolo.usada = true;
     }
+
+    private String tipoToString(int tipo) {
+        switch (tipo) {
+            case SemanticTable.INT: return "int";
+            case SemanticTable.FLO: return "float";
+            case SemanticTable.CHA: return "char";
+            case SemanticTable.STR: return "string";
+            case SemanticTable.BOO: return "bool";
+            default: return "desconhecido";
+        }
+    }
+
 }
