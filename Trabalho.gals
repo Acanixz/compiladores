@@ -5,6 +5,7 @@ Language = Java
 ScannerName = Lexico
 ParserName = Sintatico
 SemanticName = Semantico
+Package = GALS
 ScannerCaseSensitive = true
 ScannerTable = Compact
 Input = String
@@ -223,16 +224,16 @@ RIGHT_BRACE: "}"
                  | CHAR_LITERAL #2 | STRING_LITERAL #2;
 
 // ========================= EXPRESSÕES ========================
-<exp>  ::= <exp> LOGICAL_OR #7 <exp1> | <exp1>;
-<exp1> ::= <exp1> LOGICAL_AND #7 <exp2> | <exp2>;
-<exp2> ::= <exp2> BITWISE_OR #7 <exp3> | <exp3>;
-<exp3> ::= <exp3> BITWISE_XOR #7 <exp4> | <exp4>;
-<exp4> ::= <exp4> BITWISE_AND #7 <exp5> | <exp5>;
-<exp5> ::= <exp5> <op_rel> <exp6> | <exp6>;
-<exp6> ::= <exp6> <op_bitwise> <exp7> | <exp7>;
-<exp7> ::= <exp7> <op_arit_baixa> <exp8> | <exp8>;
-<exp8> ::= <exp8> <op_arit_alta> <exp9> | <exp9> ;
-<exp9> ::= <op_neg> <exp10> | <exp10>;
+<exp>  ::= <exp> LOGICAL_OR #7 <exp1> #70 | <exp1>;
+<exp1> ::= <exp1> LOGICAL_AND #7 <exp2> #70 | <exp2>;
+<exp2> ::= <exp2> BITWISE_OR #7 <exp3> #70 | <exp3>;
+<exp3> ::= <exp3> BITWISE_XOR #7 <exp4> #70 | <exp4>;
+<exp4> ::= <exp4> BITWISE_AND #7 <exp5> #70 | <exp5>;
+<exp5> ::= <exp5> <op_rel> <exp6> #70 | <exp6>;
+<exp6> ::= <exp6> <op_bitwise> <exp7> #70 | <exp7>;
+<exp7> ::= <exp7> <op_arit_baixa> <exp8> #70 | <exp8>;
+<exp8> ::= <exp8> <op_arit_alta> <exp9> #70 | <exp9> ;
+<exp9> ::= <op_neg> <exp10> #71 | <exp10>;
 <exp10> ::= <tipo_literal> 
           | <chamada_vetor>
           | <chamada_funcao> 
@@ -261,8 +262,8 @@ RIGHT_BRACE: "}"
 <escopo_vetor> ::= LEFT_BRACE #16 <valor_escopo_vetor> RIGHT_BRACE #17;
 <valor_escopo_vetor> ::= LEFT_BRACE #18 <lista_exps> RIGHT_BRACE #19 | LEFT_BRACE #18 <lista_exps> RIGHT_BRACE #19 COMMA <valor_escopo_vetor> | <escopo_vetor>;
 
-<new_exps> ::= <chamada_new> | <exp>;
-<chamada_new> ::= NEW_KEYWORD #20 <tipo_keyword> <tipo_vetor>;
+<new_exps> ::= <chamada_new> | <exp> #69;
+<chamada_new> ::= NEW_KEYWORD #20 <tipo_keyword> #69 <tipo_vetor>;
 
 // ========================== FUNÇÕES ==========================
 <declaracao_funcao> ::= <atributo_definicao> <tipo_keyword> <ponteiro> IDENTIFIER #21 LEFT_PARENTHESIS #22 <quantidade_parametros> RIGHT_PARENTHESIS #23 <lista_comandos_escopo>
@@ -327,6 +328,6 @@ RIGHT_BRACE: "}"
 <elemento> ::= <exp7> | ENDL_KEYWORD #61;
 
 // ==================== ATRIBUIÇÃO E RETORNO ===================
-<atribuicao> ::= IDENTIFIER #62 <tipo_vetor> EQUAL <exp> SEMICOLON;
+<atribuicao> ::= IDENTIFIER #62 <tipo_vetor> EQUAL <exp> #69 SEMICOLON;
 
 <chamada_return> ::= RETURN_KEYWORD #63 <vazio_exp> SEMICOLON;
