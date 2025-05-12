@@ -12,6 +12,8 @@ public class Semantico implements Constants {
     private Stack<Integer> pilhaExpr = new Stack<>();
 
     private int actionPosition = -1;
+    private int parameterPosition = -1;
+    private boolean isFunctionHeader = false;
 
     // NÃO ESQUECER DE ADICIONAR NOVAS VARIAVEIS AQUI
     public void reset() {
@@ -24,6 +26,8 @@ public class Semantico implements Constants {
         pilhaExpr.clear();
 
         actionPosition = -1;
+        parameterPosition = -1;
+        isFunctionHeader = false;
     }
 
     private static final HashMap<String, Integer> mapaTipos = new HashMap<>();
@@ -142,6 +146,46 @@ public class Semantico implements Constants {
                 exitEscopo();
                 break;
 
+            // Declaração de função
+            case 21:
+                declareVariavel(token.getLexeme(), tipoAtual);
+                escopoAtual.buscarSimbolo(token.getLexeme()).isFuncao = true;
+                break;
+
+            // Abre escopo (Parametros da função)
+            case 22:
+                enterEscopo();
+                isFunctionHeader = true;
+                break;
+
+            // Fim da declaração de parametros (função)
+            case 23:
+                parameterPosition = -1;
+                break;
+
+            // Declaração de parametro
+            case 24:
+                declareVariavel(token.getLexeme(), tipoAtual);
+                escopoAtual.buscarSimbolo(token.getLexeme()).isParametro = true;
+
+                parameterPosition += 1;
+                escopoAtual.buscarSimbolo(token.getLexeme()).parametroPosicao = parameterPosition;
+                break;
+
+            // Declaração de parametro (vetor)
+            case 25:
+                declareVariavel(token.getLexeme(), tipoAtual);
+                escopoAtual.buscarSimbolo(token.getLexeme()).isParametro = true;
+                escopoAtual.buscarSimbolo(token.getLexeme()).isVetor = true;
+
+                parameterPosition += 1;
+                escopoAtual.buscarSimbolo(token.getLexeme()).parametroPosicao = parameterPosition;
+                break;
+
+            case 26:
+                usarFuncao(token.getLexeme());
+                break;
+
             // Entrada de escopo (switch)
             case 53:
                 enterEscopo();
@@ -152,8 +196,22 @@ public class Semantico implements Constants {
                 exitEscopo();
                 break;
 
+            case 62:
+                usarVariavel(token.getLexeme());
+                break;
+
+            case 64:
+                int tipo = obterTipoVariavel(token.getLexeme());
+                pilhaExpr.push(tipo);
+                break;
+
             // Entrada de escopo (geral)
             case 67:
+                // Funções inicializam o escopo mais cedo devido aos parametros
+                if (isFunctionHeader) {
+                    isFunctionHeader = false;
+                    return;
+                }
                 enterEscopo();
                 break;
 
@@ -278,10 +336,33 @@ public class Semantico implements Constants {
         escopoAtual.getSimbolos().put(nome, s);
     }
 
-    private void usarVariavel(String nome) throws SemanticError {
+    private Simbolo usarVariavel(String nome) {
         Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
         if (simbolo == null) {
             logger.addError("Variável não declarada: " + nome, actionPosition);
+            return null;
+        }
+        simbolo.usada = true;
+        return simbolo;
+    }
+
+    private int obterTipoVariavel(String nome){
+        Simbolo simbolo = usarVariavel(nome);
+        if (simbolo != null){
+            return simbolo.tipo;
+        }
+        return -1;
+    }
+
+    private void usarFuncao(String nome) {
+        Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
+        if (simbolo == null) {
+            logger.addError("Função não declarada: " + nome, actionPosition);
+            return;
+        }
+
+        if (!simbolo.isFuncao){
+            logger.addError("Variável não é uma função: " + nome, actionPosition);
             return;
         }
         simbolo.usada = true;

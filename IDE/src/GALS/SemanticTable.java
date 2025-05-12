@@ -100,6 +100,7 @@ public class SemanticTable {
 
     /** retorna compatibilidade de atribuição dest ← orig */
     public static int atribType(int TP1, int TP2) {
+        if (TP1 == -1 || TP2 == -1) return ERR;
         return atribTable[TP1][TP2];
     }
 }
