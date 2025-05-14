@@ -93,7 +93,7 @@ public class IDE_Form extends JFrame{
         IDE_Warnings logger = IDE_Warnings.getInstance();
 
         IDE_Form window = new IDE_Form();
-        window.setContentPane(new JScrollPane(window.mainPanel));
+        window.setContentPane(window.mainPanel);
         window.setTitle("UNIVALI IDE v1.0.0");
         window.setSize(800,600);
         window.setVisible(true);
