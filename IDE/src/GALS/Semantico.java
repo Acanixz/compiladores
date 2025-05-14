@@ -8,6 +8,7 @@ public class Semantico implements Constants {
     public Escopo escopoGlobal = new Escopo();
     public Escopo escopoAtual = escopoGlobal;
 
+    Simbolo simboloAtual = null; // Simbolo sendo utilizado p/ atribuição
     private int tipoAtual = -1;   // tipo da declaração atual
     private Stack<Integer> pilhaExpr = new Stack<>();
 
@@ -117,13 +118,13 @@ public class Semantico implements Constants {
 
             // Declaração de vetor
             case 12:
-                declareVariavel(token.getLexeme(), tipoAtual);
+                simboloAtual = criarVariavel(token.getLexeme(), tipoAtual);
                 escopoAtual.buscarSimbolo(token.getLexeme()).isVetor = true;
                 break;
 
             // Declaração de variavel
             case 15:
-                declareVariavel(token.getLexeme(), tipoAtual);
+                simboloAtual = criarVariavel(token.getLexeme(), tipoAtual);
                 break;
 
             // Abre escopo (Vetor)
@@ -144,12 +145,15 @@ public class Semantico implements Constants {
             // Fecha escopo (Valor no vetor)
             case 19:
                 exitEscopo();
+                simboloAtual.inicializada = true;
+                simboloAtual = null;
                 break;
 
             // Declaração de função
             case 21:
-                declareVariavel(token.getLexeme(), tipoAtual);
-                escopoAtual.buscarSimbolo(token.getLexeme()).isFuncao = true;
+                simboloAtual = criarVariavel(token.getLexeme(), tipoAtual);
+                simboloAtual.isFuncao = true;
+                simboloAtual.inicializada = true;
                 break;
 
             // Abre escopo (Parametros da função)
@@ -165,7 +169,7 @@ public class Semantico implements Constants {
 
             // Declaração de parametro
             case 24:
-                declareVariavel(token.getLexeme(), tipoAtual);
+                criarVariavel(token.getLexeme(), tipoAtual);
                 escopoAtual.buscarSimbolo(token.getLexeme()).isParametro = true;
 
                 parameterPosition += 1;
@@ -174,7 +178,7 @@ public class Semantico implements Constants {
 
             // Declaração de parametro (vetor)
             case 25:
-                declareVariavel(token.getLexeme(), tipoAtual);
+                criarVariavel(token.getLexeme(), tipoAtual);
                 escopoAtual.buscarSimbolo(token.getLexeme()).isParametro = true;
                 escopoAtual.buscarSimbolo(token.getLexeme()).isVetor = true;
 
@@ -197,7 +201,7 @@ public class Semantico implements Constants {
                 break;
 
             case 62:
-                usarVariavel(token.getLexeme());
+                simboloAtual = usarVariavel(token.getLexeme());
                 break;
 
             case 64:
@@ -220,6 +224,7 @@ public class Semantico implements Constants {
                 exitEscopo();
                 break;
 
+            // Atribuição de variaveis
             case 69:
                 int tipoRecebido;
 
@@ -259,6 +264,9 @@ public class Semantico implements Constants {
                             + tipoToString(tipoAtual)
                             + " pode resultar em perda de informação.", actionPosition);
                 }
+
+                simboloAtual.inicializada = true;
+                simboloAtual = null;
                 break;
 
 
@@ -326,14 +334,15 @@ public class Semantico implements Constants {
         escopoAtual = escopoAtual.getParent();
     }
 
-    private void declareVariavel(String nome, Integer tipo) throws SemanticError {
+    private Simbolo criarVariavel(String nome, Integer tipo) throws SemanticError {
         if (escopoAtual.getSimbolos().containsKey(nome)) {
             logger.addError("Variável já declarada no mesmo escopo: " + nome, actionPosition);
-            return;
+            return null;
         }
         Simbolo s = new Simbolo(nome, tipo, escopoAtual);
         s.inicializada = false;
         escopoAtual.getSimbolos().put(nome, s);
+        return s;
     }
 
     private Simbolo usarVariavel(String nome) {
@@ -343,6 +352,10 @@ public class Semantico implements Constants {
             return null;
         }
         simbolo.usada = true;
+
+        if (!simbolo.inicializada) {
+            logger.addWarning("Uso de variável não inicializada: " + nome, actionPosition);
+        }
         return simbolo;
     }
 

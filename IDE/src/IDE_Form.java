@@ -19,13 +19,13 @@ public class IDE_Form extends JFrame{
     private JTable symbolsList;
 
     // Coleta todos os simbolos dos escopos
-    private java.util.List<Simbolo> coletarSimbolos(Escopo escopoGlobal) {
+    private static java.util.List<Simbolo> coletarSimbolos(Escopo escopoGlobal) {
         java.util.List<Simbolo> todosSimbolos = new java.util.ArrayList<>();
         percorrerEscopos(escopoGlobal, todosSimbolos);
         return todosSimbolos;
     }
 
-    private void percorrerEscopos(Escopo escopoAtual, java.util.List<Simbolo> lista) {
+    private static void percorrerEscopos(Escopo escopoAtual, java.util.List<Simbolo> lista) {
         // Adiciona símbolos do escopo atual
         lista.addAll(escopoAtual.getSimbolos().values());
 
@@ -114,10 +114,20 @@ public class IDE_Form extends JFrame{
 
                     window.atualizarTabelaSimbolos(sem.escopoGlobal);
 
+                    java.util.List<Simbolo> simbolos = coletarSimbolos(sem.escopoGlobal);
+                    for (int i = 0; i < simbolos.size(); i++) {
+                        Simbolo simbolo = simbolos.get(i);
+
+                        if (simbolo.inicializada && !simbolo.usada){
+                            logger.addWarning("Variavel declarada, mas não utilizada: " + simbolo.nome, 0);
+                        }
+                    }
+
                     if (!logger.getErrors().isEmpty()) {
                         IDE_Warnings.LogEntry firstError = logger.getErrors().getFirst();
                         throw new SemanticError(firstError.getMessage(), firstError.getPosition());
                     }
+
 
                     window.compileResLabel.setForeground(new Color(0, 100, 0));
                     window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);
