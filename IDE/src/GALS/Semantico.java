@@ -15,6 +15,7 @@ public class Semantico implements Constants {
     private int actionPosition = -1;
     private int parameterPosition = -1;
     private boolean isFunctionHeader = false;
+    private boolean ignoreAssign = false; // Atribuições não contam como variavel utilizada sem inicializar
 
     // NÃO ESQUECER DE ADICIONAR NOVAS VARIAVEIS AQUI
     public void reset() {
@@ -29,6 +30,7 @@ public class Semantico implements Constants {
         actionPosition = -1;
         parameterPosition = -1;
         isFunctionHeader = false;
+        ignoreAssign = false;
     }
 
     private static final HashMap<String, Integer> mapaTipos = new HashMap<>();
@@ -97,19 +99,24 @@ public class Semantico implements Constants {
                 pilhaExpr.push(SemanticTable.DIV);
                 break;
 
-            // MODULO — não há ID na SemanticTable
+            // MODULO
             case 6:
-                logger.addError("Operador '%' (MODULO) não suportado sem entry na SemanticTable", actionPosition, token.getLexeme());
-                return;
-                // Relacionais, bitwise e lógicos — todos caem em REL (igual, !=, >, <, >=, <=, &&, ||, |, ^, &)
+                pilhaExpr.push(SemanticTable.MOD);
+                break;
+
+            // Relacionais, bitwise e lógicos — todos caem em REL (igual, !=, >, <, >=, <=, &&, ||, |, ^, &)
             case 7:
                 pilhaExpr.push(SemanticTable.REL);
                 break;
 
             // LEFT_SHIFT / RIGHT_SHIFT — não há ID na SemanticTable
             case 10:
-                logger.addError("Operador de deslocamento não suportado sem entry na SemanticTable", actionPosition, token.getLexeme());
-                return;
+                if (token.getLexeme().equals("<<")) {
+                    pilhaExpr.push(SemanticTable.SHL);
+                } else {
+                    pilhaExpr.push(SemanticTable.SHR);
+                }
+                break;
 
             // Chamada de vetor
             case 11:
@@ -203,6 +210,7 @@ public class Semantico implements Constants {
                 break;
 
             case 62:
+                ignoreAssign = true;
                 simboloAtual = usarVariavel(token.getLexeme());
                 break;
 
@@ -349,6 +357,7 @@ public class Semantico implements Constants {
     }
 
     private Simbolo usarVariavel(String nome) {
+        if (ignoreAssign) return null;
         Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
         if (simbolo == null) {
             logger.addError("Variável não declarada: " + nome, actionPosition, nome);

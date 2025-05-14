@@ -44,7 +44,7 @@ public class SemanticTable {
     static int expTable[][][] = {
             // ---------- INT ---------- (linha tipo1 = INT)
             {
-                    /* INT  */ {INT, INT, INT, FLO, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+                    /* INT  */ {INT, INT, INT, FLO, INT, BOO, INT, INT, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
                     /* FLOAT*/ {FLO, FLO, FLO, FLO, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
                     /* CHAR */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
                     /* STR  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
@@ -63,7 +63,7 @@ public class SemanticTable {
                     /* INT  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
                     /* FLOAT*/ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
                     /* CHAR */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+                    /* STR  */ {STR, STR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
                     /* BOOL */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
             },
             // ---------- STRING ---------- (linha tipo1 = STRING)
