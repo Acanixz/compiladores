@@ -145,7 +145,8 @@ public class Semantico implements Constants {
             // Fecha escopo (Valor no vetor)
             case 19:
                 exitEscopo();
-                simboloAtual.inicializada = true;
+                if (simboloAtual != null)
+                    simboloAtual.inicializada = true;
                 simboloAtual = null;
                 break;
 
@@ -153,7 +154,8 @@ public class Semantico implements Constants {
             case 21:
                 simboloAtual = criarVariavel(token.getLexeme(), tipoAtual);
                 simboloAtual.isFuncao = true;
-                simboloAtual.inicializada = true;
+                if (simboloAtual != null)
+                    simboloAtual.inicializada = true;
                 break;
 
             // Abre escopo (Parametros da função)
@@ -265,7 +267,8 @@ public class Semantico implements Constants {
                             + " pode resultar em perda de informação.", actionPosition, token.getLexeme());
                 }
 
-                simboloAtual.inicializada = true;
+                if (simboloAtual != null)
+                    simboloAtual.inicializada = true;
                 simboloAtual = null;
                 break;
 

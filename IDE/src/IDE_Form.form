@@ -87,6 +87,8 @@
                       <foreground color="-65536"/>
                       <layoutOrientation value="0"/>
                       <model/>
+                      <selectionBackground color="-4665371"/>
+                      <selectionForeground color="-4980736"/>
                     </properties>
                   </component>
                 </children>
