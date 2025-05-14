@@ -47,7 +47,7 @@ public class IDE_Form extends JFrame{
         for (Simbolo s : coletarSimbolos(escopoGlobal)) {
             model.addRow(new Object[]{
                     s.nome,
-                    s.tipo != null ? s.tipo.toString() : "N/A",
+                    s.getTipoComoString(),
                     s.escopo != null ? s.escopo.getNome() : "Global", // Mostra o nome do escopo
                     s.inicializada,
                     s.usada,

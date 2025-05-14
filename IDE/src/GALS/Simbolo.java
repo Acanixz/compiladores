@@ -29,4 +29,27 @@ public class Simbolo {
         this.isMatriz = false;
         this.isFuncao = false;
     }
+
+    @Override
+    public String toString() {
+        return nome + " : " + getTipoComoString();
+    }
+
+    public String getTipoComoString() {
+        if (tipo == null) return "N/A";
+        switch (tipo) {
+            case SemanticTable.INT:
+                return "int";
+            case SemanticTable.FLO:
+                return "float";
+            case SemanticTable.CHA:
+                return "char";
+            case SemanticTable.STR:
+                return "string";
+            case SemanticTable.BOO:
+                return "bool";
+            default:
+                return "desconhecido(" + tipo + ")";
+        }
+    }
 }
