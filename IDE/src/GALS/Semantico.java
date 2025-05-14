@@ -354,7 +354,7 @@ public class Semantico implements Constants {
         simbolo.usada = true;
 
         if (!simbolo.inicializada) {
-            logger.addWarning("Uso de variável não inicializada: " + nome, actionPosition);
+            logger.addWarning("Uso de variável não inicializada: " + nome, actionPosition, nome);
         }
         return simbolo;
     }

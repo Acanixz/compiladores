@@ -124,7 +124,7 @@ public class IDE_Form extends JFrame{
                         Simbolo simbolo = simbolos.get(i);
 
                         if (simbolo.inicializada && !simbolo.usada){
-                            logger.addWarning("Variavel declarada, mas não utilizada: " + simbolo.nome, 0);
+                            logger.addWarning("Variavel declarada, mas não utilizada: " + simbolo.nome, 0, "");
                         }
                     }
 
@@ -133,8 +133,20 @@ public class IDE_Form extends JFrame{
                         throw new SemanticError(firstError.getMessage(), firstError.getPosition());
                     }
 
+                    String compileMsg = "Compilado com sucesso!";
+
+                    if (!logger.getWarnings().isEmpty()){
+                        if (logger.getWarnings().size() == 1){
+                            compileMsg += " (" + logger.getWarnings().size() + " aviso)";
+                        } else {
+                            compileMsg += " (" + logger.getWarnings().size() + " avisos)";
+                        }
+
+                    }
+
+                    compileMsg += " | " + timeString;
                     window.compileResLabel.setForeground(new Color(0, 100, 0));
-                    window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);
+                    window.compileResLabel.setText(compileMsg);
                 } catch (LexicalError err) {
                     String posicaoText = getPositionText(getPosition(err.getPosition(), window.codeField));
                     logger.addError("Caractere invalido", err.getPosition(), "");
