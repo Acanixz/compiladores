@@ -50,7 +50,7 @@ public class Semantico implements Constants {
                 Object tipoAtual_tmp = mapaTipos.get(token.getLexeme());
                 tipoAtual = tipoAtual_tmp == null ? -1 : (int) tipoAtual_tmp;
                 if (tipoAtual == -1) {
-                    logger.addError("Tipo não reconhecido: " + token.getLexeme(), actionPosition);
+                    logger.addError("Tipo não reconhecido: " + token.getLexeme(), actionPosition, token.getLexeme());
                     return;
                 }
                 break;
@@ -99,7 +99,7 @@ public class Semantico implements Constants {
 
             // MODULO — não há ID na SemanticTable
             case 6:
-                logger.addError("Operador '%' (MODULO) não suportado sem entry na SemanticTable", actionPosition);
+                logger.addError("Operador '%' (MODULO) não suportado sem entry na SemanticTable", actionPosition, token.getLexeme());
                 return;
                 // Relacionais, bitwise e lógicos — todos caem em REL (igual, !=, >, <, >=, <=, &&, ||, |, ^, &)
             case 7:
@@ -108,7 +108,7 @@ public class Semantico implements Constants {
 
             // LEFT_SHIFT / RIGHT_SHIFT — não há ID na SemanticTable
             case 10:
-                logger.addError("Operador de deslocamento não suportado sem entry na SemanticTable", actionPosition);
+                logger.addError("Operador de deslocamento não suportado sem entry na SemanticTable", actionPosition, token.getLexeme());
                 return;
 
             // Chamada de vetor
@@ -244,7 +244,7 @@ public class Semantico implements Constants {
                     } else if (lex.matches("\"(\\\\[btnfr\"'\\\\]|[^\"\\\\])*\"")) {
                         tipoRecebido = SemanticTable.STR;
                     } else {
-                        logger.addError("Não foi possível inferir o tipo do valor: " + lex, actionPosition);
+                        logger.addError("Não foi possível inferir o tipo do valor: " + lex, actionPosition, token.getLexeme());
                         return;
                     }
                 }
@@ -255,14 +255,14 @@ public class Semantico implements Constants {
                     logger.addError("Atribuição inválida: não é possível atribuir "
                             + tipoToString(tipoRecebido)
                             + " a variável do tipo "
-                            + tipoToString(tipoAtual), actionPosition);
+                            + tipoToString(tipoAtual), actionPosition, token.getLexeme());
                     return;
                 } else if (comp == SemanticTable.WAR) {
                     logger.addWarning("Warning semântico: atribuição de "
                             + tipoToString(tipoRecebido)
                             + " a "
                             + tipoToString(tipoAtual)
-                            + " pode resultar em perda de informação.", actionPosition);
+                            + " pode resultar em perda de informação.", actionPosition, token.getLexeme());
                 }
 
                 simboloAtual.inicializada = true;
@@ -282,7 +282,7 @@ public class Semantico implements Constants {
                     logger.addError("Operação inválida entre tipos "
                             + tipoToString(tipoEsquerda)
                             + " e "
-                            + tipoToString(tipoDireita), actionPosition);
+                            + tipoToString(tipoDireita), actionPosition, token.getLexeme());
                     return;
                 }
                 pilhaExpr.push(resultado);
@@ -303,7 +303,7 @@ public class Semantico implements Constants {
                     } else if (lex.matches("-?\\d+\\.\\d+([fFdD]?)")) {
                         tipoUn = SemanticTable.FLO;
                     } else {
-                        logger.addError("Não foi possível inferir tipo para negação de: " + lex, actionPosition);
+                        logger.addError("Não foi possível inferir tipo para negação de: " + lex, actionPosition, token.getLexeme());
                         return;
                     }
                 }
@@ -314,7 +314,7 @@ public class Semantico implements Constants {
                     // tipo pós-negação é o mesmo
                     pilhaExpr.push(tipoUn);
                 } else {
-                    logger.addError("Negação aplicada em tipo inválido: " + tipoToString(tipoUn), actionPosition);
+                    logger.addError("Negação aplicada em tipo inválido: " + tipoToString(tipoUn), actionPosition, token.getLexeme());
                     return;
                 }
                 break;
@@ -336,7 +336,7 @@ public class Semantico implements Constants {
 
     private Simbolo criarVariavel(String nome, Integer tipo) throws SemanticError {
         if (escopoAtual.getSimbolos().containsKey(nome)) {
-            logger.addError("Variável já declarada no mesmo escopo: " + nome, actionPosition);
+            logger.addError("Variável já declarada no mesmo escopo: " + nome, actionPosition, nome);
             return null;
         }
         Simbolo s = new Simbolo(nome, tipo, escopoAtual);
@@ -348,7 +348,7 @@ public class Semantico implements Constants {
     private Simbolo usarVariavel(String nome) {
         Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
         if (simbolo == null) {
-            logger.addError("Variável não declarada: " + nome, actionPosition);
+            logger.addError("Variável não declarada: " + nome, actionPosition, nome);
             return null;
         }
         simbolo.usada = true;
@@ -370,12 +370,12 @@ public class Semantico implements Constants {
     private void usarFuncao(String nome) {
         Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
         if (simbolo == null) {
-            logger.addError("Função não declarada: " + nome, actionPosition);
+            logger.addError("Função não declarada: " + nome, actionPosition, nome);
             return;
         }
 
         if (!simbolo.isFuncao){
-            logger.addError("Variável não é uma função: " + nome, actionPosition);
+            logger.addError("Variável não é uma função: " + nome, actionPosition, nome);
             return;
         }
         simbolo.usada = true;

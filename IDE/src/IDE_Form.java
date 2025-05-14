@@ -15,7 +15,7 @@ public class IDE_Form extends JFrame{
     private JPanel mainPanel;
     private JTabbedPane tabbedPane1;
     private JPanel warnPanel;
-    private JList warnList;
+    private JList<String> warnList;
     private JTable symbolsList;
 
     // Coleta todos os simbolos dos escopos
@@ -61,19 +61,25 @@ public class IDE_Form extends JFrame{
     }
 
     // Obtém linha e coluna
-    private static String getPositionInfo(int position, JTextArea textArea) {
+    private static int[] getPosition(int position, JTextArea textArea) {
         int lineNum = 0;
         int columnNum = 0;
+        int[] retorno;
 
         try {
             lineNum = textArea.getLineOfOffset(position);
             int lineStart = textArea.getLineStartOffset(lineNum);
             columnNum = position - lineStart;
             lineNum += 1; // Convert to 1-based numbering
+            retorno = new int[] { lineNum, columnNum };
         } catch (Exception e) {
-            return "Posicao: " + position;
+            retorno = new int[] { 0, position };
         }
-        return "Linha: " + lineNum + ", Coluna: " + columnNum;
+        return retorno;
+    }
+
+    private static String getPositionText(int[] posicao) {
+        return "Linha: " + posicao[0] + ", Coluna: " + posicao[1];
     }
 
     private static void mostrarErro(int position, JTextArea textArea) {
@@ -87,7 +93,7 @@ public class IDE_Form extends JFrame{
         IDE_Warnings logger = IDE_Warnings.getInstance();
 
         IDE_Form window = new IDE_Form();
-        window.setContentPane(window.mainPanel);
+        window.setContentPane(new JScrollPane(window.mainPanel));
         window.setTitle("UNIVALI IDE v1.0.0");
         window.setSize(800,600);
         window.setVisible(true);
@@ -101,18 +107,17 @@ public class IDE_Form extends JFrame{
                 LocalTime currentTime = LocalTime.now();
                 DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
                 String timeString = currentTime.format(timeFormatter);
+                DefaultListModel<String> modelo = new DefaultListModel<>();
+                Semantico sem = new Semantico();
 
                 try {
-
                     Lexico lex = new Lexico();
                     Sintatico sint = new Sintatico();
-                    Semantico sem = new Semantico();
+                    sem = new Semantico();
                     sem.reset();
 
                     lex.setInput(window.codeField.getText());
                     sint.parse(lex, sem);
-
-                    window.atualizarTabelaSimbolos(sem.escopoGlobal);
 
                     java.util.List<Simbolo> simbolos = coletarSimbolos(sem.escopoGlobal);
                     for (int i = 0; i < simbolos.size(); i++) {
@@ -128,27 +133,41 @@ public class IDE_Form extends JFrame{
                         throw new SemanticError(firstError.getMessage(), firstError.getPosition());
                     }
 
-
                     window.compileResLabel.setForeground(new Color(0, 100, 0));
                     window.compileResLabel.setText("Compilado com sucesso!  | " + timeString);
                 } catch (LexicalError err) {
-                    String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    String posicaoText = getPositionText(getPosition(err.getPosition(), window.codeField));
+                    logger.addError("Caractere invalido", err.getPosition(), "");
                     window.compileResLabel.setForeground(Color.RED);
-                    window.compileResLabel.setText("Erro lexico na " + posicao + " | " + err.getMessage() + " | "  + timeString);
+                    window.compileResLabel.setText("Erro lexico na " + posicaoText + " | " + err.getMessage() + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
                 catch (SyntacticError err) {
-                    String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    String posicaoText = getPositionText(getPosition(err.getPosition(), window.codeField));
+                    logger.addError("Sintaxe invalida", err.getPosition(), "");
                     window.compileResLabel.setForeground(Color.RED);
-                    window.compileResLabel.setText("Erro sintatico na " + posicao + " | " + err.getMessage() + " | "  + timeString);
+                    window.compileResLabel.setText("Erro sintatico na " + posicaoText + " | " + err.getMessage() + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
                 catch (SemanticError err) {
-                    String posicao  = getPositionInfo(err.getPosition(), window.codeField);
+                    String posicaoText = getPositionText(getPosition(err.getPosition(), window.codeField));
                     window.compileResLabel.setForeground(Color.RED);
-                    window.compileResLabel.setText("Erro semantico na " + posicao + " | " + err.getMessage() + " | "  + timeString);
+                    window.compileResLabel.setText("Erro semantico na " + posicaoText + " | " + err.getMessage() + " | "  + timeString);
                     mostrarErro(err.getPosition(), window.codeField);
                 }
+
+                String posicaoText;
+                for (IDE_Warnings.LogEntry entry : logger.getWarnings()) {
+                    posicaoText = getPositionText(getPosition(entry.getPosition(), window.codeField));
+                    modelo.addElement("Aviso: " + posicaoText + " | " + entry.getMessage());
+                }
+                for (IDE_Warnings.LogEntry entry : logger.getErrors()) {
+                    posicaoText = getPositionText(getPosition(entry.getPosition(), window.codeField));
+                    modelo.addElement("Erro: " + posicaoText + " | " + entry.getMessage());
+                }
+                window.warnList.setModel(modelo);
+
+                window.atualizarTabelaSimbolos(sem.escopoGlobal);
             }
         });
     }
