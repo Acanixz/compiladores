@@ -43,58 +43,59 @@ public class SemanticTable {
      */
     static int expTable[][][] = {
             // ---------- INT ---------- (linha tipo1 = INT)
-            {
-                    /* INT  */ {INT, INT, INT, FLO, INT, BOO, INT, INT, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* FLOAT*/ {FLO, FLO, FLO, FLO, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* CHAR */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* BOOL */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+            {       /*           + ,  - ,  * ,  / ,  % , REL, << , >> ,  | ,  ^ ,  & , && , || ,  ~ ,  ! */
+                    /* INT  */ {INT, INT, INT, INT, INT, BOO, INT, INT, INT, INT, INT, BOO, BOO, ERR, ERR},
+                    /* FLOAT*/ {INT, INT, INT, INT, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+                    /* BOOL */ {INT, INT, INT, INT, INT, BOO, INT, INT, INT, INT, BOO, BOO, BOO, ERR, ERR},
+                    /* CHAR */ {INT, INT, INT, INT, INT, BOO, ERR, ERR, INT, INT, BOO, BOO, BOO, ERR, ERR},
+                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
             },
             // ---------- FLOAT ---------- (linha tipo1 = FLOAT)
-            {
+            {       /*           + ,  - ,  * ,  / ,  % , REL, << , >> ,  | ,  ^ ,  & , && , || ,  ~ ,  ! */
                     /* INT  */ {FLO, FLO, FLO, FLO, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
                     /* FLOAT*/ {FLO, FLO, FLO, FLO, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* CHAR */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* BOOL */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+                    /* BOOL */ {FLO, FLO, FLO, FLO, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+                    /* CHAR */ {FLO, FLO, FLO, FLO, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
             },
             // ---------- CHAR ---------- (linha tipo1 = CHAR)
-            {
-                    /* INT  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* FLOAT*/ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* CHAR */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* STR  */ {STR, STR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* BOOL */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+            {       /*           + ,  - ,  * ,  / ,  % , REL, << , >> ,  | ,  ^ ,  & , && , || ,  ~ ,  ! */
+                    /* INT  */ {CHA, CHA, CHA, CHA, CHA, BOO, CHA, CHA, CHA, CHA, BOO, BOO, BOO, ERR, ERR},
+                    /* FLOAT*/ {CHA, CHA, CHA, CHA, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+                    /* BOOL */ {CHA, CHA, CHA, CHA, CHA, BOO, CHA, CHA, CHA, CHA, BOO, BOO, BOO, ERR, ERR},
+                    /* CHAR */ {CHA, CHA, CHA, CHA, CHA, BOO, ERR, ERR, CHA, CHA, CHA, BOO, BOO, ERR, ERR},
+                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
             },
             // ---------- STRING ---------- (linha tipo1 = STRING)
-            {
-                    /* INT  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* FLOAT*/ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* CHAR */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
-                    /* BOOL */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+            {       /*           + ,  - ,  * ,  / ,  % , REL, << , >> ,  | ,  ^ ,  & , && , || ,  ~ ,  ! */
+                    /* INT  */ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR},
+                    /* FLOAT*/ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR},
+                    /* BOOL */ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR},
+                    /* CHAR */ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR},
+                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR},
             },
             // ---------- BOOL ---------- (linha tipo1 = BOOL)
-            {
-                    /* INT  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, OK_},
-                    /* FLOAT*/ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, OK_},
-                    /* CHAR */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, OK_},
-                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, OK_},
-                    /* BOOL */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, OK_},
+            {       /*           + ,  - ,  * ,  / ,  % , REL, << , >> ,  | ,  ^ ,  & , && , || ,  ~ ,  ! */
+                    /* INT  */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, BOO, BOO, BOO, ERR, ERR},
+                    /* FLOAT*/ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
+                    /* BOOL */ {ERR, BOO, BOO, BOO, BOO, BOO, ERR, BOO, ERR, BOO, BOO, BOO, BOO, ERR, ERR},
+                    /* CHAR */ {ERR, ERR, ERR, ERR, ERR, BOO, ERR, ERR, ERR, ERR, BOO, BOO, BOO, ERR, ERR},
+                    /* STR  */ {ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, BOO, BOO, ERR, ERR},
             }
     };
 
     // compatibilidade de atribuição: [destino][origem]
     static int atribTable [][] = {
-            /*INT*/    {OK_, WAR, ERR, ERR, ERR},
-            /*FLOAT*/  {WAR, OK_, ERR, ERR, ERR},
-            /*CHAR*/   {ERR, ERR, OK_, ERR, ERR},
-            /*STRING*/ {ERR, ERR, ERR, OK_, ERR},
-            /*BOOL*/   {ERR, ERR, ERR, ERR, OK_}
+            /*INT*/    {OK_, WAR, OK_, OK_, ERR},
+            /*FLOAT*/  {OK_, OK_, OK_, OK_, ERR},
+            /*BOOL*/   {OK_, WAR, OK_, WAR, OK_},
+            /*CHAR*/   {OK_, WAR, OK_, OK_, ERR},
+            /*STRING*/ {ERR, ERR, ERR, ERR, OK_}
     };
 
     /** retorna tipo resultante de TP1 OP TP2 */
     public static int resultType(int TP1, int TP2, int OP) {
+        if (TP1 == -1 || TP2 == -1) return ERR;
         return expTable[TP1][TP2][OP];
     }
 

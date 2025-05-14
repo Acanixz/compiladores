@@ -160,9 +160,11 @@ public class Semantico implements Constants {
             // Declaração de função
             case 21:
                 simboloAtual = criarVariavel(token.getLexeme(), tipoAtual);
-                simboloAtual.isFuncao = true;
-                if (simboloAtual != null)
+
+                if (simboloAtual != null) {
                     simboloAtual.inicializada = true;
+                    simboloAtual.isFuncao = true;
+                }
                 break;
 
             // Abre escopo (Parametros da função)
