@@ -123,7 +123,7 @@ public class IDE_Form extends JFrame{
                     for (int i = 0; i < simbolos.size(); i++) {
                         Simbolo simbolo = simbolos.get(i);
 
-                        if (simbolo.inicializada && !simbolo.usada){
+                        if (!simbolo.usada){
                             logger.addWarning("Variavel declarada, mas não utilizada: " + simbolo.nome, 0, "");
                         }
                     }

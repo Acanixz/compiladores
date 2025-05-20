@@ -160,9 +160,11 @@ public class Semantico implements Constants {
             // Declaração de função
             case 21:
                 simboloAtual = criarVariavel(token.getLexeme(), tipoAtual);
-                simboloAtual.isFuncao = true;
-                if (simboloAtual != null)
+
+                if (simboloAtual != null) {
                     simboloAtual.inicializada = true;
+                    simboloAtual.isFuncao = true;
+                }
                 break;
 
             // Abre escopo (Parametros da função)
@@ -357,13 +359,16 @@ public class Semantico implements Constants {
     }
 
     private Simbolo usarVariavel(String nome) {
-        if (ignoreAssign) return null;
         Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
         if (simbolo == null) {
             logger.addError("Variável não declarada: " + nome, actionPosition, nome);
             return null;
         }
-        simbolo.usada = true;
+
+        if (!ignoreAssign){
+            simbolo.usada = true;
+        }
+        ignoreAssign = false;
 
         if (!simbolo.inicializada) {
             logger.addWarning("Uso de variável não inicializada: " + nome, actionPosition, nome);
