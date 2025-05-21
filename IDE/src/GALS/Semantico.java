@@ -214,6 +214,7 @@ public class Semantico implements Constants {
             case 62:
                 ignoreAssign = true;
                 simboloAtual = usarVariavel(token.getLexeme());
+                tipoAtual = simboloAtual.tipo;
                 break;
 
             case 64:
@@ -280,6 +281,7 @@ public class Semantico implements Constants {
                 if (simboloAtual != null)
                     simboloAtual.inicializada = true;
                 simboloAtual = null;
+                pilhaExpr.clear();
                 break;
 
 
@@ -359,6 +361,7 @@ public class Semantico implements Constants {
     }
 
     private Simbolo usarVariavel(String nome) {
+        System.out.println("Tentando ler variavel " + nome + " em " + escopoAtual.getNome() + " e acima");
         Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
         if (simbolo == null) {
             logger.addError("Variável não declarada: " + nome, actionPosition, nome);
