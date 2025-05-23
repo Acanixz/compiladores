@@ -17,6 +17,7 @@ public class IDE_Form extends JFrame{
     private JPanel warnPanel;
     private JList<String> warnList;
     private JTable symbolsList;
+    private JTextArea resultBIP;
 
     // Coleta todos os simbolos dos escopos
     private static java.util.List<Simbolo> coletarSimbolos(Escopo escopoGlobal) {
@@ -147,6 +148,7 @@ public class IDE_Form extends JFrame{
                     compileMsg += " | " + timeString;
                     window.compileResLabel.setForeground(new Color(0, 100, 0));
                     window.compileResLabel.setText(compileMsg);
+                    window.resultBIP.setText(sem.codigoBIP);
                 } catch (LexicalError err) {
                     String posicaoText = getPositionText(getPosition(err.getPosition(), window.codeField));
                     logger.addError("Caractere invalido", err.getPosition(), "");

@@ -113,6 +113,21 @@
               </component>
             </children>
           </scrollpane>
+          <scrollpane id="31fe6">
+            <constraints>
+              <tabbedpane title="Resultado (BIP)"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="61211" class="javax.swing.JTextArea" binding="resultBIP">
+                <constraints/>
+                <properties>
+                  <editable value="false"/>
+                </properties>
+              </component>
+            </children>
+          </scrollpane>
         </children>
       </tabbedpane>
     </children>
