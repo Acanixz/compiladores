@@ -90,6 +90,8 @@ public class Semantico implements Constants
 
             // Geração de código (declaração de variaveis)
             case 3:
+                // OBS: BIP usa apenas integers, tipo sempre 1
+                criarVariavel(nome, 1);
                 gera_cod(nome, valor);
                 valor = null;
                 break;
@@ -103,6 +105,7 @@ public class Semantico implements Constants
             // Geração de código dos operandos em uma expressão (origem: identificador)
             case 5:
                 if (!flagOp){
+                    usarVariavel(token.getLexeme());
                     gera_cod("LD", token.getLexeme());
                 } else {
                     if (Objects.equals(oper, "+")){
@@ -132,6 +135,8 @@ public class Semantico implements Constants
 
             // Entrada de dados
             case 7:
+                ignoreAssign = true;
+                usarVariavel(token.getLexeme());
                 gera_cod("LD", "$in_port");
                 gera_cod("STO", token.getLexeme());
                 break;
@@ -141,6 +146,7 @@ public class Semantico implements Constants
             // compare pg.14 de "Geração de Código 1" e expressão em Portugol.gals
             // para entender
             case 8:
+                usarVariavel(token.getLexeme());
                 gera_cod("LD", token.getLexeme());
                 gera_cod("STO", "$out_port");
                 break;
@@ -161,5 +167,35 @@ public class Semantico implements Constants
                 gera_cod("STO", nome_id_atrib);
                 break;
         }
+    }
+
+    private Simbolo criarVariavel(String nome, Integer tipo) throws SemanticError {
+        if (escopoAtual.getSimbolos().containsKey(nome)) {
+            logger.addError("Variável já declarada no mesmo escopo: " + nome, actionPosition, nome);
+            return null;
+        }
+        Simbolo s = new Simbolo(nome, tipo, escopoAtual);
+        s.inicializada = false;
+        escopoAtual.getSimbolos().put(nome, s);
+        return s;
+    }
+
+    private Simbolo usarVariavel(String nome) {
+        System.out.println("Tentando ler variavel " + nome + " em " + escopoAtual.getNome() + " e acima");
+        Simbolo simbolo = escopoAtual.buscarSimbolo(nome);
+        if (simbolo == null) {
+            logger.addError("Variável não declarada: " + nome, actionPosition, nome);
+            return null;
+        }
+
+        if (!ignoreAssign){
+            simbolo.usada = true;
+        }
+        ignoreAssign = false;
+
+        if (!simbolo.inicializada) {
+            logger.addWarning("Uso de variável não inicializada: " + nome, actionPosition, nome);
+        }
+        return simbolo;
     }
 }
