@@ -148,7 +148,7 @@ public class IDE_Form extends JFrame{
                     compileMsg += " | " + timeString;
                     window.compileResLabel.setForeground(new Color(0, 100, 0));
                     window.compileResLabel.setText(compileMsg);
-                    window.resultBIP.setText(sem.codigoBIP);
+                    window.resultBIP.setText(sem.compilar_ASM());
                 } catch (LexicalError err) {
                     String posicaoText = getPositionText(getPosition(err.getPosition(), window.codeField));
                     logger.addError("Caractere invalido", err.getPosition(), "");
