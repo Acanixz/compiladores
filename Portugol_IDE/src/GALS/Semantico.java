@@ -109,7 +109,7 @@ public class Semantico implements Constants
                     gera_cod("LD", token.getLexeme());
                 } else {
                     if (Objects.equals(oper, "+")){
-                        gera_cod("ADD ", token.getLexeme());
+                        gera_cod("ADD", token.getLexeme());
                     }
                     if (Objects.equals(oper, "-")) {
                         gera_cod("SUB", token.getLexeme());

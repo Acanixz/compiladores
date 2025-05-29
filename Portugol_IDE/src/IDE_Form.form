@@ -115,7 +115,7 @@
           </scrollpane>
           <scrollpane id="31fe6">
             <constraints>
-              <tabbedpane title="Resultado (BIP)"/>
+              <tabbedpane title="Resultado (ASM)"/>
             </constraints>
             <properties/>
             <border type="none"/>
