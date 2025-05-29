@@ -32,6 +32,32 @@ public class Escopo {
         return null; // não encontrou
     }
 
+    /// Busca por um simbolo temporario livre
+    public Simbolo buscarTempLivre() {
+        Escopo escopo = this;
+        while (escopo != null) {
+            for (Simbolo simb : escopo.simbolos.values()){
+                if (simb.isTemp && simb.isLivre){
+                    return simb;
+                }
+            }
+            escopo = escopo.parent;
+        }
+        return null; // não encontrou
+    }
+
+    /// Retorna contagem de vars temporarias no escopo
+    public int getTempCount(){
+        int count = 0;
+        Escopo escopo = this;
+        for (Simbolo simb : escopo.simbolos.values()){
+            if (simb.isTemp){
+                count += 1;
+            }
+        }
+        return count;
+    }
+
     public Escopo() {
         this.nome = "Global";
         this.parent = null;
