@@ -98,15 +98,15 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
   
 // Comandos
   <lista_cmd> ::= <lista_cmd> <cmd> | <cmd>;
- <cmd> ::= ID  "<-"  <exp2>
- | ID  "[" ID "]" "<-" <exp2>
- | ID  "[" NUM_INT "]" "<-" <exp2>
+ <cmd> ::= ID #21  "<-"  <exp2> #22
+ | ID #21  "[" ID "]" "<-" <exp2> #22
+ | ID #21  "[" NUM_INT "]" "<-" <exp2> #22
  | se <exp> entao <lista_cmd> <r_senao> fimse
  | enquanto <exp> faca <lista_cmd> fim_enquanto
  | para ID "<-" <exp2> ATE <exp2> passo NUM_INT <lista_cmd> fimpara
- | leia "(" ID ")"
- | leia "(" ID "[" <exp2> "]" ")"
- | escreva "(" <exp3> ")";
+ | leia "(" ID #7 ")"
+ | leia "(" ID #7 "[" <exp2> "]" ")"
+ | escreva "(" <exp3> #9 ")";
 
 // Senão da condição se (opcional)
 <r_senao> ::= senao <lista_cmd> | î;
