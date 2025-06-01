@@ -16,6 +16,11 @@ public class Simbolo {
     public boolean isMatriz;
     public boolean isFuncao;
 
+    /// NOVO CÓDIGO DO BIP, CÓDIGO ACIMA MANTIDO APENAS POR GARANTIA, REMOVER NÃO UTILIZADOS APÓS CONCLUSÃO
+    public boolean isTemp;
+    public boolean isLivre;
+
+
     public Simbolo(String nome, Integer tipo, Escopo escopo) {
         this.nome = nome;
         this.tipo = tipo;
@@ -28,6 +33,8 @@ public class Simbolo {
         this.isVetor = false;
         this.isMatriz = false;
         this.isFuncao = false;
+        this.isTemp = false;
+        this.isLivre = false;
     }
 
     @Override

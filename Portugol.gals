@@ -48,11 +48,11 @@ NUM_INT: 0[bB][01]+ | 0[xX][0-9a-fA-F]+ | [0-9]+
 ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
 
 // SIMBOLOS ESPECIAIS
-// 1. Op. Aritméticos
+// 1. Operadires Aritméticos
 "+"
 "-"
 
-// 2. Op. Atribuição
+// 2. Operador de Atribuição
 "<-"
 
 // 3. Delimitadores
@@ -62,13 +62,18 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
 "(" // Funções e precedência (abre)
 ")" // Funções e precedência (fecha)
 
-// 4. Op Relacionais
+// 4. Operadores Relacionais
 ">"
 "<"
 ">="
 "<="
 "!="
 "=="
+
+// 5. Operadores bit-a-bit
+"&" // AND
+"^" // OR Exclusivo
+"|" // OR Inclusivo
 
 // IGNORES
 // Espaço, Whiteline
@@ -98,29 +103,42 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
   
 // Comandos
   <lista_cmd> ::= <lista_cmd> <cmd> | <cmd>;
- <cmd> ::= ID  "<-"  <exp2>
- | ID  "[" ID "]" "<-" <exp2>
- | ID  "[" NUM_INT "]" "<-" <exp2>
+ <cmd> ::= ID #21  "<-"  <exp2> #22
+ | ID #21  "[" ID "]" "<-" <exp2> #22
+ | ID #21  "[" NUM_INT "]" "<-" <exp2> #22
  | se <exp> entao <lista_cmd> <r_senao> fimse
  | enquanto <exp> faca <lista_cmd> fim_enquanto
  | para ID "<-" <exp2> ATE <exp2> passo NUM_INT <lista_cmd> fimpara
- | leia "(" ID ")"
- | leia "(" ID "[" <exp2> "]" ")"
- | escreva "(" <exp3> ")";
+ | leia "(" ID #7 ")"
+ | leia "(" ID #7 "[" <exp2> "]" ")"
+ | escreva "(" <exp3> #9 ")";
 
 // Senão da condição se (opcional)
 <r_senao> ::= senao <lista_cmd> | î;
 
 // Expressões lógicas
-<exp> ::= <exp> AND <exp1>  | <exp> OR <exp1>   | NOT <exp>  | <exp1>;
+<exp> ::= <exp> AND <exp1>
+        | <exp> OR <exp1>
+        | NOT <exp1>
+        | <exp1>;
 
 // Expressões relacionais
-<exp1> ::= <exp1> ">" <exp2> | <exp1> "<" <exp2> | <exp1> ">=" <exp2>
-  | <exp1> "<=" <exp2> | <exp1> "!=" <exp2>| <exp1> "==" <exp2>
-  | <exp2>;
+<exp1> ::= <exp1> ">" <exp2>
+         | <exp1> "<" <exp2>
+         | <exp1> ">=" <exp2>
+         | <exp1> "<=" <exp2>
+         | <exp1> "!=" <exp2>
+         | <exp1> "==" <exp2>
+         | <exp2>;
   
-// Expressões aritméticas
-<exp2> ::= <exp2> "+" #4 <exp3>  | <exp2> "-" #4 <exp3> | <exp3>;
-     
+// Expressões aritméticas e bit-a-bit
+<exp2> ::= <exp2> "+" #4 <exp3>
+         | <exp2> "-" #4 <exp3>
+         | <exp2> "&" #4 <exp3>
+         | <exp2> "^" #4 <exp3>
+         | <exp2> "|" #4 <exp3>
+         | <exp3>;
+
 // Termos (fatores)
-<exp3> ::= ID #5  | NUM_INT #6 | ID "[" ID "]" | ID "[" NUM_INT "]";
+<exp3> ::= ID #5 | NUM_INT #6 | ID "[" ID "]" | ID "[" NUM_INT "]";
+

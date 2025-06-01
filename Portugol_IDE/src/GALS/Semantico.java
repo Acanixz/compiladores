@@ -20,6 +20,7 @@ public class Semantico implements Constants
 
     /// NOVO CÓDIGO DO BIP, CÓDIGO ACIMA MANTIDO APENAS POR GARANTIA, REMOVER NÃO UTILIZADOS APÓS CONCLUSÃO
     private String asmDataSection = ".data\n";
+    private String asmTempDataSection = "";
     private String asmTextSection = ".text\n";
     Boolean lendoSecaoData = true;
     Boolean primeiroCode = true;
@@ -47,17 +48,13 @@ public class Semantico implements Constants
     // Junta as seções de declaração e código em uma string ASM legivel pelo Bipide 3.0
     // Download: https://sourceforge.net/projects/bipide/
     public String compilar_ASM(){
-        return asmDataSection + "\n" + asmTextSection;
+        return asmDataSection + "\n" + asmTempDataSection + "\n" + asmTextSection;
     }
 
     private void gera_cod(String nome, String valor){
-        List<String> operadores = List.of("LD", "ADD", "SUB", "LDI", "ADDI", "SUBI", "STO");
+        List<String> operadores = List.of("LD", "ADD", "SUB", "AND", "XOR", "OR", "LDI", "ADDI", "SUBI", "ANDI", "XORI", "ORI", "STO");
 
         if (operadores.contains(nome)){
-            /*if (primeiroCode){
-                codigoBIP += "\n.text\n";
-                primeiroCode = false;
-            }*/
             asmTextSection += nome + " " + valor + "\n";
             lendoSecaoData = false;
         } else if (lendoSecaoData) {
@@ -90,8 +87,8 @@ public class Semantico implements Constants
 
             // Geração de código (declaração de variaveis)
             case 3:
-                // OBS: BIP usa apenas integers, tipo sempre 1
-                criarVariavel(nome, 1);
+                // OBS: BIP usa apenas integers, tipo sempre 0
+                criarVariavel(nome, 0);
                 gera_cod(nome, valor);
                 valor = null;
                 break;
@@ -104,15 +101,24 @@ public class Semantico implements Constants
 
             // Geração de código dos operandos em uma expressão (origem: identificador)
             case 5:
+                usarVariavel(token.getLexeme());
                 if (!flagOp){
-                    usarVariavel(token.getLexeme());
                     gera_cod("LD", token.getLexeme());
                 } else {
                     if (Objects.equals(oper, "+")){
-                        gera_cod("ADD ", token.getLexeme());
+                        gera_cod("ADD", token.getLexeme());
                     }
                     if (Objects.equals(oper, "-")) {
                         gera_cod("SUB", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "&")) {
+                        gera_cod("AND", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "^")) {
+                        gera_cod("XOR", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "|")) {
+                        gera_cod("OR", token.getLexeme());
                     }
                 }
                 flagOp = false;
@@ -128,6 +134,15 @@ public class Semantico implements Constants
                     }
                     if (Objects.equals(oper, "-")) {
                         gera_cod("SUBI", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "&")) {
+                        gera_cod("ANDI", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "^")) {
+                        gera_cod("XORI", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "|")) {
+                        gera_cod("ORI", token.getLexeme());
                     }
                 }
                 flagOp = false;
@@ -159,6 +174,7 @@ public class Semantico implements Constants
 
             // Nome p/ atribuição em variavel
             case 21:
+                usarVariavel(token.getLexeme());
                 nome_id_atrib = token.getLexeme();
                 break;
 
@@ -169,13 +185,45 @@ public class Semantico implements Constants
         }
     }
 
+    /*
+        Objetivo: Retornar um temporário livre-Busca na lista
+         →Se encontra um livre retorna-o e seta livre
+        para False
+         →Se não encontra cria um novo temp na lista
+        retorna-o e seta livre para False
+    */
+    private Simbolo GetTemp(){
+        Simbolo simbolo = escopoAtual.buscarTempLivre();
+        if (simbolo == null) {
+            String novoNome = "temp" + (escopoAtual.getTempCount() + 1);
+            simbolo = new Simbolo(novoNome, 0, escopoAtual);
+            simbolo.inicializada = false;
+            simbolo.isTemp = true;
+            escopoAtual.getSimbolos().put(novoNome, simbolo);
+        }
+        simbolo.isLivre = false;
+        asmTempDataSection += simbolo.nome + ": 0\n";
+        return simbolo;
+    }
+
+    /*
+    *  Objetivo: Liberar um temporário-Busca temp na lista e seta livre para True
+    */
+    private void FreeTemp(String nome){
+        Simbolo temporario = usarVariavel(nome);
+
+        if (temporario != null){
+            temporario.isLivre = true;
+        }
+    }
+
     private Simbolo criarVariavel(String nome, Integer tipo) throws SemanticError {
         if (escopoAtual.getSimbolos().containsKey(nome)) {
             logger.addError("Variável já declarada no mesmo escopo: " + nome, actionPosition, nome);
             return null;
         }
         Simbolo s = new Simbolo(nome, tipo, escopoAtual);
-        s.inicializada = false;
+        s.inicializada = true;
         escopoAtual.getSimbolos().put(nome, s);
         return s;
     }
