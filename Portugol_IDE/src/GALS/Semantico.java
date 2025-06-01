@@ -52,7 +52,7 @@ public class Semantico implements Constants
     }
 
     private void gera_cod(String nome, String valor){
-        List<String> operadores = List.of("LD", "ADD", "SUB", "LDI", "ADDI", "SUBI", "STO");
+        List<String> operadores = List.of("LD", "ADD", "SUB", "AND", "XOR", "OR", "LDI", "ADDI", "SUBI", "ANDI", "XORI", "ORI", "STO");
 
         if (operadores.contains(nome)){
             asmTextSection += nome + " " + valor + "\n";
@@ -101,8 +101,8 @@ public class Semantico implements Constants
 
             // Geração de código dos operandos em uma expressão (origem: identificador)
             case 5:
+                usarVariavel(token.getLexeme());
                 if (!flagOp){
-                    usarVariavel(token.getLexeme());
                     gera_cod("LD", token.getLexeme());
                 } else {
                     if (Objects.equals(oper, "+")){
@@ -110,6 +110,15 @@ public class Semantico implements Constants
                     }
                     if (Objects.equals(oper, "-")) {
                         gera_cod("SUB", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "&")) {
+                        gera_cod("AND", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "^")) {
+                        gera_cod("XOR", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "|")) {
+                        gera_cod("OR", token.getLexeme());
                     }
                 }
                 flagOp = false;
@@ -125,6 +134,15 @@ public class Semantico implements Constants
                     }
                     if (Objects.equals(oper, "-")) {
                         gera_cod("SUBI", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "&")) {
+                        gera_cod("ANDI", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "^")) {
+                        gera_cod("XORI", token.getLexeme());
+                    }
+                    if (Objects.equals(oper, "|")) {
+                        gera_cod("ORI", token.getLexeme());
                     }
                 }
                 flagOp = false;
@@ -156,6 +174,7 @@ public class Semantico implements Constants
 
             // Nome p/ atribuição em variavel
             case 21:
+                usarVariavel(token.getLexeme());
                 nome_id_atrib = token.getLexeme();
                 break;
 
@@ -204,7 +223,7 @@ public class Semantico implements Constants
             return null;
         }
         Simbolo s = new Simbolo(nome, tipo, escopoAtual);
-        s.inicializada = false;
+        s.inicializada = true;
         escopoAtual.getSimbolos().put(nome, s);
         return s;
     }
