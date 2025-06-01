@@ -99,13 +99,12 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
   <dec> ::= <tipo> <lista_id>;
   <tipo> ::= INT;
   <lista_id> ::= <id> #3 "," <lista_id>| <id> #3;
-  <id> ::= ID #1 | ID #1 "<-" NUM_INT #2;
+  <id> ::= ID #1 | ID #1 "<-" NUM_INT #2 | ID #1 "[" NUM_INT #30 "]";
   
 // Comandos
   <lista_cmd> ::= <lista_cmd> <cmd> | <cmd>;
  <cmd> ::= ID #21  "<-"  <exp2> #22
- | ID #21  "[" ID "]" "<-" <exp2> #22
- | ID #21  "[" NUM_INT "]" "<-" <exp2> #22
+ | ID #21  "[" <exp2> "]" "<-" <exp2> #22
  | se <exp> entao <lista_cmd> <r_senao> fimse
  | enquanto <exp> faca <lista_cmd> fim_enquanto
  | para ID "<-" <exp2> ATE <exp2> passo NUM_INT <lista_cmd> fimpara
@@ -140,5 +139,5 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
          | <exp3>;
 
 // Termos (fatores)
-<exp3> ::= ID #5 | NUM_INT #6 | ID "[" ID "]" | ID "[" NUM_INT "]";
+<exp3> ::= ID #5 | NUM_INT #6 | ID "[" <exp2> "]";
 
