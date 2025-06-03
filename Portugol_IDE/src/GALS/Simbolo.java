@@ -12,7 +12,11 @@ public class Simbolo {
     public int parametroPosicao;
     boolean isRef; // É parametro por referência? (&)
 
+
+    // CAMPOS PARA VETORE
     public boolean isVetor;
+    public int tamanhoVetor;
+
     public boolean isMatriz;
     public boolean isFuncao;
 
@@ -30,17 +34,32 @@ public class Simbolo {
         this.isParametro = false;
         this.parametroPosicao = -1;
         this.isRef = false;
-        this.isVetor = false;
         this.isMatriz = false;
         this.isFuncao = false;
         this.isTemp = false;
         this.isLivre = false;
+
+        // --- INICIALIZAÇÃO  VETORES
+        this.isVetor =false;
+        this.tamanhoVetor=0;
     }
 
     @Override
     public String toString() {
-        return nome + " : " + getTipoComoString();
+        String base = nome + " : " + getTipoComoString();
+        if (isVetor) {
+            base += " (vetor[" + tamanhoVetor + "])"; // Adiciona a informação de vetor
+        }
+        if (isFuncao) {
+            base += " (função)";
+        }
+        if (isTemp) {
+            base += " (temp, livre=" + isLivre + ")";
+        }
+        //  adicionar mais informações se isMatriz ou isParametro for true
+        return base;
     }
+
 
     public String getTipoComoString() {
         if (tipo == null) return "N/A";

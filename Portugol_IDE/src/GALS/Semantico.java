@@ -93,6 +93,48 @@ public class Semantico implements Constants
                 valor = null;
                 break;
 
+            case 30: // Declaração de Vetores
+                int tamanhoVetor;
+                try {
+                    tamanhoVetor = Integer.parseInt(token.getLexeme());
+                    if (tamanhoVetor <= 0) {
+                        logger.addError("O tamanho do vetor deve ser um número inteiro positivo: " + token.getLexeme(), actionPosition, token.getLexeme());
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    logger.addError("Valor inválido para o tamanho do vetor: " + token.getLexeme(), actionPosition, token.getLexeme());
+                    return;
+                }
+
+                // Verifica se o nome foi previamente atribuído
+                if (nome == null || nome.isEmpty()) {
+                    logger.addError("Nenhum nome de vetor foi especificado antes da declaração de tamanho.", actionPosition, token.getLexeme());
+                    return;
+                }
+
+                // Criar e registrar o símbolo do vetor
+                Simbolo simboloVetor = criarVetor(nome, 0, tamanhoVetor);
+                if (simboloVetor == null) {
+                    // Erro já tratado dentro de criarVetor
+                    return;
+                }
+
+                // Gerar código Assembly BIP para vetor
+                StringBuilder vetorCode = new StringBuilder(nome + ": ");
+                for (int i = 0; i < tamanhoVetor; i++) {
+                    vetorCode.append("0");
+                    if (i < tamanhoVetor - 1) {
+                        vetorCode.append(",");
+                    }
+                }
+                vetorCode.append("\n");
+                asmDataSection += vetorCode.toString();
+
+                // Limpar variáveis de estado
+                nome = null;
+                valor = null;
+                break;
+
             // Obtenção do operador na expressão + aciona flag p/ segundo ou outro operando
             case 4:
                 flagOp = true;
@@ -224,6 +266,18 @@ public class Semantico implements Constants
         }
         Simbolo s = new Simbolo(nome, tipo, escopoAtual);
         s.inicializada = true;
+        escopoAtual.getSimbolos().put(nome, s);
+        return s;
+    }
+    private Simbolo criarVetor(String nome, Integer tipo, int tamanho) throws SemanticError {
+        if (escopoAtual.getSimbolos().containsKey(nome)) {
+            logger.addError("Variável ou vetor já declarado no mesmo escopo: " + nome, actionPosition, nome);
+            return null;
+        }
+        Simbolo s = new Simbolo(nome, tipo, escopoAtual);
+        s.inicializada = true;   // Vetores são considerados inicializados (com zeros)
+        s.isVetor = true;        // Marca como vetor
+        s.tamanhoVetor = tamanho; // Define o tamanho
         escopoAtual.getSimbolos().put(nome, s);
         return s;
     }
