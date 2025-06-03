@@ -30,6 +30,8 @@ public class Semantico implements Constants
     Boolean flagOp = false;
     String oper;
 
+    // --- NOVA FLAG ---
+    private boolean isDeclarandoVetor = false; // Novo campo
     // NÃO ESQUECER DE ADICIONAR NOVAS VARIAVEIS AQUI
     public void reset() {
         logger.clearWarnsAndErrors();
@@ -94,23 +96,26 @@ public class Semantico implements Constants
                 break;*/
                 // Verifica se o 'nome' (ID da declaração) já foi processado como vetor pelo case 30
                 if(nome != null){ // Garante que há um nome para processar
-                    Simbolo simboloExistente= escopoAtual.buscarSimbolo(nome);
-                    //se nao tiver nada trada como varial normal
-                    if(simboloExistente == null || !simboloExistente.isVetor){
-                        // É uma declaração de variável simples (não foi tratada pelo case 30)
 
+                    if(!isDeclarandoVetor){
+                        // É uma declaração de variável simples (não foi tratada pelo case 30)
                         Simbolo s =criarVariavel(nome, 0);// OBS: BIP usa apenas integers, tipo sempre 0
                         if(s != null && valor != null){ // Se houver valor inicial (ID <- NUM_INT)
                             gera_cod("LDI", valor);
                             gera_cod("STO", nome); // Ou s.nome, para usar o nome do símbolo VER COM O HERIQUE PARA VER COMO PODEMOS IMPLEMTNTAR
+                        }else {
+                            // Se não houver valor inicial (ex: INT var;), inicializa com 0 no .data
+                            gera_cod(s.nome, null); // `gera_cod` já trata `null` para gerar "0\n"
                         }
                     }
+                    // Se isDeclarandoVetor for true, o case 30 já tratou, e este case 3 não faz nada
                 }
                 // Limpa as variáveis de estado para a próxima declaração/comando
                 nome = null;
                 valor = null;
                 flagOp = false; // Essas parecem ser flags de expressão, talvez não pertençam aqui /// VER COMO O HERCK SE NESSESARIO
                 oper = null;
+                isDeclarandoVetor = false; // <--- LIMPA A FLAG AQUI!
                 break;
 
             case 30: // Declaração de Vetores
@@ -153,6 +158,7 @@ public class Semantico implements Constants
                 // Limpar variáveis de estado
                 nome = null;
                 valor = null;
+                isDeclarandoVetor = true; // <--- SETA A FLAG AQUI!
                 break;
 
             // Obtenção do operador na expressão + aciona flag p/ segundo ou outro operando
