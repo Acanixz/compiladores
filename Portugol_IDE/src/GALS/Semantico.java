@@ -38,6 +38,9 @@ public class Semantico implements Constants
     private String idParaAcessoVetor = null; // <-- ADICIONADO AQUI
     private String nomeTempIndice = null; // Armazenará o nome da temp para o índice do vetor
     private String nomeTempValorAtribuicao = null; // Armazenará o nome da temp para o valor a ser atribuído
+    private String idParaLeituraVetor = null; // Guarda o nome do vetor para 'leia' com índice
+    private boolean lendoVetorIndexado = false; // Flag para indicar que estamos lendo um vetor com índice
+
 
     public void reset() {
         logger.clearWarnsAndErrors();
@@ -55,6 +58,8 @@ public class Semantico implements Constants
         idParaAcessoVetor = null; // <-- RESETAR TAMBÉM
         nomeTempIndice = null;
         nomeTempValorAtribuicao = null;
+        idParaLeituraVetor = null;
+        lendoVetorIndexado = false;
     }
 
     // Junta as seções de declaração e código em uma string ASM legivel pelo Bipide 3.0
@@ -180,8 +185,19 @@ public class Semantico implements Constants
             case 7:
                 ignoreAssign = true;
                 usarVariavel(token.getLexeme());
-                gera_cod("LD", "$in_port");
-                gera_cod("STO", token.getLexeme());
+
+                Simbolo simboloLido = escopoAtual.buscarSimbolo(token.getLexeme());
+                if (simboloLido != null && simboloLido.isVetor) {
+                    // Se é um vetor, apenas armazena o nome do vetor e seta a flag.
+                    // A geração do LD $in_port e STOV será feita no case 32.
+                    idParaLeituraVetor = token.getLexeme();
+                    lendoVetorIndexado = true;
+                } else {
+                    // Se é uma variável simples, gera o código de leitura direto
+                    gera_cod("LD", "$in_port");
+                    gera_cod("STO", token.getLexeme());
+                    // Não é um vetor indexado, então as flags devem ser false (já são por padrão)
+                }
                 break;
 
             // Saida de dados (origem: variavel)
@@ -300,16 +316,26 @@ public class Semantico implements Constants
                 break;
 
             case 32:
-                // Geração de código (atribuição de variavel)
-                if (variavelVetor) {
-                    // O índice já está em X (graças ao case 31)
-                    // O valor a ser atribuído já está no acumulador (A)
-                    // nome_id_atrib é o nome do vetor
-                    gera_cod("STOV", nome_id_atrib); // Atribui valor de A para [nome_id_atrib + X]
-                } else {
-                    gera_cod("STO", nome_id_atrib);
+                if (!lendoVetorIndexado || idParaLeituraVetor == null) {
+                    // Erro interno: #32 disparado sem um 'leia' de vetor correspondente
+                    logger.addError("Erro interno: Ação #32 disparada sem contexto de leitura de vetor indexado.", action, token.getLexeme());
+                    return;
                 }
-                variavelVetor = false; // Reset da flag
+
+                // Nesse ponto, a expressão <exp2> (o índice) já foi avaliada
+                // e seu resultado está no acumulador (A).
+                // 1. Mover o índice de A para o registrador de índice X ($indr)
+                gera_cod("STO", "$indr"); // Armazena o índice no registrador X ($indr)
+
+                // 2. Carregar o valor da porta de entrada para o acumulador (A)
+                gera_cod("LD", "$in_port");
+
+                // 3. Armazenar o valor do acumulador (A) no vetor na posição indicada por X
+                gera_cod("STOV", idParaLeituraVetor);
+
+                // Resetar as flags e variáveis de estado para a próxima instrução
+                lendoVetorIndexado = false;
+                idParaLeituraVetor = null;
                 break;
 
 
