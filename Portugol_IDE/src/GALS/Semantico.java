@@ -34,7 +34,11 @@ public class Semantico implements Constants
 
     // --- NOVA FLAG ---
     private boolean isDeclarandoVetor = false; // Novo campo
-    // NÃO ESQUECER DE ADICIONAR NOVAS VARIAVEIS AQUI
+    // NOVO: Para capturar o nome do vetor antes de acessar seu índice em expressões de leitura
+    private String idParaAcessoVetor = null; // <-- ADICIONADO AQUI
+    private String nomeTempIndice = null; // Armazenará o nome da temp para o índice do vetor
+    private String nomeTempValorAtribuicao = null; // Armazenará o nome da temp para o valor a ser atribuído
+
     public void reset() {
         logger.clearWarnsAndErrors();
 
@@ -47,6 +51,10 @@ public class Semantico implements Constants
         parameterPosition = -1;
         isFunctionHeader = false;
         ignoreAssign = false;
+
+        idParaAcessoVetor = null; // <-- RESETAR TAMBÉM
+        nomeTempIndice = null;
+        nomeTempValorAtribuicao = null;
     }
 
     // Junta as seções de declaração e código em uma string ASM legivel pelo Bipide 3.0
@@ -129,26 +137,32 @@ public class Semantico implements Constants
             // Geração de código dos operandos em uma expressão (origem: identificador)
             case 5:
                 usarVariavel(token.getLexeme());
-                if (!flagOp){
-                    gera_cod("LD", token.getLexeme());
-                } else {
-                    if (Objects.equals(oper, "+")){
-                        gera_cod("ADD", token.getLexeme());
-                    }
-                    if (Objects.equals(oper, "-")) {
-                        gera_cod("SUB", token.getLexeme());
-                    }
-                    if (Objects.equals(oper, "&")) {
-                        gera_cod("AND", token.getLexeme());
-                    }
-                    if (Objects.equals(oper, "^")) {
-                        gera_cod("XOR", token.getLexeme());
-                    }
-                    if (Objects.equals(oper, "|")) {
-                        gera_cod("OR", token.getLexeme());
+                Simbolo s = escopoAtual.buscarSimbolo(token.getLexeme()); // Busca o símbolo na tabela
+                if (s != null && s.isVetor) { // SE o ID é um vetor
+                    idParaAcessoVetor = token.getLexeme(); // Armazena o nome do vetor para uso posterior (em #33)
+                    // NADA DE GERAÇÃO DE CÓDIGO AQUI. O LDV será gerado no case 33.
+                } else { // SE o ID é uma variável simples (não um vetor)
+                    if (!flagOp) {
+                        gera_cod("LD", token.getLexeme());
+                    } else {
+                        if (Objects.equals(oper, "+")) {
+                            gera_cod("ADD", token.getLexeme());
+                        }
+                        if (Objects.equals(oper, "-")) {
+                            gera_cod("SUB", token.getLexeme());
+                        }
+                        if (Objects.equals(oper, "&")) {
+                            gera_cod("AND", token.getLexeme());
+                        }
+                        if (Objects.equals(oper, "^")) {
+                            gera_cod("XOR", token.getLexeme());
+                        }
+                        if (Objects.equals(oper, "|")) {
+                            gera_cod("OR", token.getLexeme());
+                        }
                     }
                 }
-                flagOp = false;
+                    flagOp = false;
                 break;
 
             // Geração de código dos operandos em uma expressão (origem: immediate)
@@ -206,16 +220,41 @@ public class Semantico implements Constants
                 break;
 
             // Geração de código (atribuição de variavel)
-            case 22:
+            case 22: // Geração de código (atribuição de variavel ou vetor)
                 if (variavelVetor) {
-                    gera_cod("LDI", indiceVetor);
-                    Simbolo temp0 = GetTemp();
-                    gera_cod("STO",temp0.nome);
-                    gera_cod("STOV", nome_id_atrib);
+                    // Neste ponto, o valor a ser atribuído (lado direito de "<-")
+                    // já foi avaliado e está no acumulador (A).
+                    // Precisamos salvá-lo em outro temporário.
+                    Simbolo tempValor = GetTemp();
+                    gera_cod("STO", tempValor.nome); // Salva o valor a ser atribuído em um temporário
+                    nomeTempValorAtribuicao = tempValor.nome; // Guarda o nome do temporário
+
+                    // 1. Carregar o índice de volta para o acumulador (A)
+                    gera_cod("LD", nomeTempIndice);
+
+                    // 2. Mover o índice do acumulador (A) para o registrador de índice (X ou $indr)
+                    // O BIPIDE usa STO $indr para isso, ou MOVX (se suportado pelo seu Bipide/geração).
+                    // Pelo seu código desejado, é STO $indr
+                    gera_cod("STO", "$indr"); // Armazena o índice no registrador X (o seu "$indr")
+
+                    // 3. Carregar o valor a ser atribuído de volta para o acumulador (A)
+                    gera_cod("LD", nomeTempValorAtribuicao);
+
+                    // 4. Finalmente, armazenar o valor do acumulador (A) no vetor no índice X
+                    gera_cod("STOV", nome_id_atrib); // nome_id_atrib deve ser o nome base do vetor ('vetorb')
+
+                    // Liberar os temporários após o uso
+                    FreeTemp(nomeTempIndice);
+                    FreeTemp(nomeTempValorAtribuicao);
+                    nomeTempIndice = null;
+                    nomeTempValorAtribuicao = null;
+                    usarVariavel(tempValor.nome);
+
                 } else {
+                    // Lógica para atribuição de variável simples (que já está correta)
                     gera_cod("STO", nome_id_atrib);
                 }
-                variavelVetor = false;
+                variavelVetor = false; // Reset da flag para a próxima operação
                 break;
 
             case 30: // Declaração de Vetores
@@ -262,14 +301,43 @@ public class Semantico implements Constants
                 break;
 
             case 31:
-                indiceVetor = token.getLexeme();
-                variavelVetor = true;
+                //Ação semântica para o índice de um vetor em ATRIBUIÇÃO (lado esquerdo)
+                // Nesse ponto, a expressão <exp2> (o índice) já foi avaliada e seu resultado está no acumulador (A).
+                // Precisamos salvar esse valor do índice em um temporário.
+                Simbolo tempIndice = GetTemp(); // Pega um temporário novo
+                gera_cod("STO", tempIndice.nome); // Salva o índice atual do acumulador no temporário
+                nomeTempIndice = tempIndice.nome; // Guarda o nome do temporário para usar depois
+
+                // A flag `variavelVetor` já está sendo usada, então vamos mantê-la.
+                variavelVetor = true; // Sinaliza que a próxima atribuição é para um vetor
                 break;
 
             case 32:
+                // Geração de código (atribuição de variavel)
+                if (variavelVetor) {
+                    // O índice já está em X (graças ao case 31)
+                    // O valor a ser atribuído já está no acumulador (A)
+                    // nome_id_atrib é o nome do vetor
+                    gera_cod("STOV", nome_id_atrib); // Atribui valor de A para [nome_id_atrib + X]
+                } else {
+                    gera_cod("STO", nome_id_atrib);
+                }
+                variavelVetor = false; // Reset da flag
                 break;
 
-            case 33:
+
+            case 33: // Leitura de elemento de vetor (ID #5 "[" <exp2> #33 "]")
+                // Neste ponto, a <exp2> do índice já foi avaliada e seu resultado está no acumulador (A)
+                // Precisamos mover o conteúdo de A para o registrador de índice (X) do BIPIDE.
+                gera_cod("MOVX", ""); // Move o conteúdo de A para X
+
+                if (idParaAcessoVetor == null) {
+                    logger.addError("Erro interno: Nome do vetor não capturado para acesso indexado.", action, token.getLexeme());
+                    return;
+                }
+                // Agora que o índice está em X, carregamos o valor do elemento do vetor em A
+                gera_cod("LDV", idParaAcessoVetor); // Carrega o valor de [idParaAcessoVetor + X] para A
+                idParaAcessoVetor = null; // Limpa a flag
                 break;
         }
     }
@@ -284,14 +352,15 @@ public class Semantico implements Constants
     private Simbolo GetTemp(){
         Simbolo simbolo = escopoAtual.buscarTempLivre();
         if (simbolo == null) {
-            String novoNome = String.valueOf(999 + (escopoAtual.getTempCount() + 1));
+            String novoNome = "temp" + (escopoAtual.getTempCount());
             simbolo = new Simbolo(novoNome, 0, escopoAtual);
-            simbolo.inicializada = false;
+            simbolo.inicializada = true;
             simbolo.isTemp = true;
             escopoAtual.getSimbolos().put(novoNome, simbolo);
+            asmTempDataSection += simbolo.nome + ": 0\n";
         }
         simbolo.isLivre = false;
-        asmTempDataSection += simbolo.nome + ": 0\n";
+
         return simbolo;
     }
 
