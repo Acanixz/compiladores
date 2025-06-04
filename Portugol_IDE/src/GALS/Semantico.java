@@ -211,6 +211,14 @@ public class Semantico implements Constants
                     gera_cod("LDI", indiceVetor);
                     Simbolo temp0 = GetTemp();
                     gera_cod("STO",temp0.nome);
+                    gera_cod("LDI", indiceVetor);
+                    Simbolo temp1 = GetTemp();
+                    gera_cod("STO",temp1.nome);
+                    gera_cod("LD", temp0.nome);
+                    usarVariavel(temp0.nome);
+//                    gera_cod("STO",temp1.nome);
+                    gera_cod("LD", temp1.nome);
+                    usarVariavel(temp1.nome);
                     gera_cod("STOV", nome_id_atrib);
                 } else {
                     gera_cod("STO", nome_id_atrib);
@@ -284,14 +292,14 @@ public class Semantico implements Constants
     private Simbolo GetTemp(){
         Simbolo simbolo = escopoAtual.buscarTempLivre();
         if (simbolo == null) {
-            String novoNome = String.valueOf(999 + (escopoAtual.getTempCount() + 1));
+            String novoNome = "temp" + (escopoAtual.getTempCount());
             simbolo = new Simbolo(novoNome, 0, escopoAtual);
-            simbolo.inicializada = false;
+            simbolo.inicializada = true;
             simbolo.isTemp = true;
             escopoAtual.getSimbolos().put(novoNome, simbolo);
+            asmTempDataSection += simbolo.nome + ": 0\n";
         }
         simbolo.isLivre = false;
-        asmTempDataSection += simbolo.nome + ": 0\n";
         return simbolo;
     }
 
