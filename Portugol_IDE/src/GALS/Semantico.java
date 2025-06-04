@@ -100,25 +100,12 @@ public class Semantico implements Constants
             // Geração de código (declaração de variaveis)
             case 3:
                 // OBS: BIP usa apenas integers, tipo sempre 0
-                /*criarVariavel(nome, 0);
-                gera_cod(nome, valor);
-                valor = null;
-                break;*/
-                // Verifica se o 'nome' (ID da declaração) já foi processado como vetor pelo case 30
                 if(nome != null){ // Garante que há um nome para processar
-
-                    if(!isDeclarandoVetor){
-                        // É uma declaração de variável simples (não foi tratada pelo case 30)
-                        Simbolo s =criarVariavel(nome, 0);// OBS: BIP usa apenas integers, tipo sempre 0
-                        if(s != null && valor != null){ // Se houver valor inicial (ID <- NUM_INT)
-                            gera_cod("LDI", valor);
-                            gera_cod("STO", nome); // Ou s.nome, para usar o nome do símbolo VER COM O HERIQUE PARA VER COMO PODEMOS IMPLEMTNTAR
-                        }else {
-                            // Se não houver valor inicial (ex: INT var;), inicializa com 0 no .data
-                            gera_cod(s.nome, null); // `gera_cod` já trata `null` para gerar "0\n"
-                        }
-                    }
                     // Se isDeclarandoVetor for true, o case 30 já tratou, e este case 3 não faz nada
+                    if(!isDeclarandoVetor){
+                        criarVariavel(nome, 0);
+                        gera_cod(nome, valor);
+                    }
                 }
                 // Limpa as variáveis de estado para a próxima declaração/comando
                 nome = null;
