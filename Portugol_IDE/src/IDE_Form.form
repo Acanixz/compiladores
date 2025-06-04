@@ -20,6 +20,7 @@
           </grid>
         </constraints>
         <properties>
+          <font size="14"/>
           <text value="Compilar"/>
         </properties>
       </component>
@@ -30,6 +31,7 @@
           </grid>
         </constraints>
         <properties>
+          <font size="14"/>
           <horizontalAlignment value="0"/>
           <text value="Aguardando compilação.."/>
         </properties>
@@ -41,7 +43,9 @@
             <preferred-size width="200" height="200"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <font size="14"/>
+        </properties>
         <border type="none"/>
         <children>
           <grid id="dfa45" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -62,9 +66,13 @@
                   <component id="970d2" class="javax.swing.JTextArea" binding="codeField">
                     <constraints/>
                     <properties>
+                      <autoscrolls value="true"/>
+                      <font size="14"/>
                       <foreground color="-16777216"/>
                       <lineWrap value="true"/>
+                      <margin top="0" left="3" bottom="0" right="3"/>
                       <text value=""/>
+                      <wrapStyleWord value="false"/>
                     </properties>
                   </component>
                 </children>
@@ -89,6 +97,7 @@
                   <component id="e19e0" class="javax.swing.JList" binding="warnList">
                     <constraints/>
                     <properties>
+                      <font size="14"/>
                       <foreground color="-65536"/>
                       <layoutOrientation value="0"/>
                       <model/>
@@ -104,12 +113,18 @@
             <constraints>
               <tabbedpane title="Simbolos"/>
             </constraints>
-            <properties/>
+            <properties>
+              <font/>
+            </properties>
             <border type="none"/>
             <children>
               <component id="c8a54" class="javax.swing.JTable" binding="symbolsList">
                 <constraints/>
-                <properties/>
+                <properties>
+                  <font/>
+                  <intercellSpacing width="5" height="5"/>
+                  <rowMargin value="5"/>
+                </properties>
               </component>
             </children>
           </scrollpane>
@@ -124,6 +139,9 @@
                 <constraints/>
                 <properties>
                   <editable value="false"/>
+                  <font size="14"/>
+                  <margin top="0" left="3" bottom="0" right="3"/>
+                  <text value=""/>
                 </properties>
               </component>
             </children>

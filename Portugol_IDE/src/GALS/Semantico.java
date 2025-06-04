@@ -29,6 +29,8 @@ public class Semantico implements Constants
     String valor;
     Boolean flagOp = false;
     String oper;
+    Boolean variavelVetor = false;
+    String indiceVetor;
 
     // --- NOVA FLAG ---
     private boolean isDeclarandoVetor = false; // Novo campo
@@ -54,7 +56,7 @@ public class Semantico implements Constants
     }
 
     private void gera_cod(String nome, String valor){
-        List<String> operadores = List.of("LD", "ADD", "SUB", "AND", "XOR", "OR", "LDI", "ADDI", "SUBI", "ANDI", "XORI", "ORI", "STO");
+        List<String> operadores = List.of("LD", "ADD", "SUB", "AND", "XOR", "OR", "LDI", "ADDI", "SUBI", "ANDI", "XORI", "ORI", "STO", "STOV");
 
         if (operadores.contains(nome)){
             asmTextSection += nome + " " + valor + "\n";
@@ -205,7 +207,15 @@ public class Semantico implements Constants
 
             // Geração de código (atribuição de variavel)
             case 22:
-                gera_cod("STO", nome_id_atrib);
+                if (variavelVetor) {
+                    gera_cod("LDI", indiceVetor);
+                    Simbolo temp0 = GetTemp();
+                    gera_cod("STO",temp0.nome);
+                    gera_cod("STOV", nome_id_atrib);
+                } else {
+                    gera_cod("STO", nome_id_atrib);
+                }
+                variavelVetor = false;
                 break;
 
             case 30: // Declaração de Vetores
@@ -252,6 +262,8 @@ public class Semantico implements Constants
                 break;
 
             case 31:
+                indiceVetor = token.getLexeme();
+                variavelVetor = true;
                 break;
 
             case 32:
@@ -272,7 +284,7 @@ public class Semantico implements Constants
     private Simbolo GetTemp(){
         Simbolo simbolo = escopoAtual.buscarTempLivre();
         if (simbolo == null) {
-            String novoNome = "temp" + (escopoAtual.getTempCount() + 1);
+            String novoNome = String.valueOf(999 + (escopoAtual.getTempCount() + 1));
             simbolo = new Simbolo(novoNome, 0, escopoAtual);
             simbolo.inicializada = false;
             simbolo.isTemp = true;

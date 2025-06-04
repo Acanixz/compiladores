@@ -12,15 +12,13 @@ public class Simbolo {
     public int parametroPosicao;
     boolean isRef; // É parametro por referência? (&)
 
-
-    // CAMPOS PARA VETORE
+    /// NOVO CÓDIGO DO BIP, CÓDIGO ACIMA MANTIDO APENAS POR GARANTIA, REMOVER NÃO UTILIZADOS APÓS CONCLUSÃO
     public boolean isVetor;
     public int tamanhoVetor;
 
     public boolean isMatriz;
     public boolean isFuncao;
 
-    /// NOVO CÓDIGO DO BIP, CÓDIGO ACIMA MANTIDO APENAS POR GARANTIA, REMOVER NÃO UTILIZADOS APÓS CONCLUSÃO
     public boolean isTemp;
     public boolean isLivre;
 
