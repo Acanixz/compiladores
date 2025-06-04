@@ -139,5 +139,5 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
          | <exp3>;
 
 // Termos (fatores)
-<exp3> ::= ID #5 | NUM_INT #6 | ID #5 "[" <exp2> #33 "]";
+<exp3> ::= ID #5 | NUM_INT #6 | ID #5 "[" <exp2> #33 "]"; 
 
