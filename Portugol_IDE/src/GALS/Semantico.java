@@ -29,12 +29,18 @@ public class Semantico implements Constants
     String valor;
     Boolean flagOp = false;
     String oper;
+    String oprel;
     Boolean variavelVetor = false;
     String indiceVetor;
-
-    // --- NOVA FLAG ---
+    Simbolo TEMP_ESQ;
+    Simbolo TEMP_DIR;
+    private Stack<String> pilhaRotulo = new Stack<>();
+    String rotIf = "";
+    String rotFim = "";
+    String rotIni = "";
+    int rotCount = 0;
+    
     private boolean isDeclarandoVetor = false; // Novo campo
-    // NOVO: Para capturar o nome do vetor antes de acessar seu índice em expressões de leitura
     private String idParaAcessoVetor = null; // <-- ADICIONADO AQUI
     private String nomeTempIndice = null; // Armazenará o nome da temp para o índice do vetor
     private String nomeTempValorAtribuicao = null; // Armazenará o nome da temp para o valor a ser atribuído
@@ -60,6 +66,14 @@ public class Semantico implements Constants
         nomeTempValorAtribuicao = null;
         idParaLeituraVetor = null;
         lendoVetorIndexado = false;
+        oprel = null;
+        TEMP_ESQ = null;
+        TEMP_DIR = null;
+        pilhaRotulo = new Stack<>();
+        rotIf = "";
+        rotFim = "";
+        rotIni = "";
+        rotCount = 0;
     }
 
     // Junta as seções de declaração e código em uma string ASM legivel pelo Bipide 3.0
@@ -69,10 +83,14 @@ public class Semantico implements Constants
     }
 
     private void gera_cod(String nome, String valor){
-        List<String> operadores = List.of("LD", "ADD", "SUB", "AND", "XOR", "OR", "LDI", "ADDI", "SUBI", "ANDI", "XORI", "ORI", "STO", "STOV");
+        List<String> operadores = List.of("LD", "ADD", "SUB", "AND", "XOR", "OR", "LDI", "ADDI", "SUBI", "ANDI", "XORI", "ORI", "STO", "STOV", "JMP", "BLE", "BGE", "BNE", "BEQ", "BGT", "BLT", "ROT");
 
         if (operadores.contains(nome)){
-            asmTextSection += nome + " " + valor + "\n";
+            if (nome.equals("ROT")){
+                asmTextSection += valor + ":" + "\n";
+            } else {
+                asmTextSection += "\t" + nome + "\t" + valor + "\n";
+            }
             lendoSecaoData = false;
         } else if (lendoSecaoData) {
             if (nome != null){
@@ -85,6 +103,8 @@ public class Semantico implements Constants
             if (valor != null){
                 asmDataSection += valor + "\n";
             }
+        } else {
+            System.out.println("[ALERTA] Comando não reconhecido pelo gerador ASM: " + nome);
         }
     }
 
@@ -92,6 +112,8 @@ public class Semantico implements Constants
     {
         System.out.println("Ação #" + action + ", Token: " + token);
         switch (action){
+            /// Casos da Geração de Código 1 - Instruções Sequenciais com Vetores
+
             // Nome p/ declaração de variaveis
             case 1:
                 nome = token.getLexeme();
@@ -352,6 +374,69 @@ public class Semantico implements Constants
                 gera_cod("LDV", idParaAcessoVetor); // Carrega o valor de [idParaAcessoVetor + X] para A
                 idParaAcessoVetor = null; // Limpa a flag
                 break;
+
+            /// Casos da Geração de Código 2 - Estruturas de Controle de Fluxo (desvios e loops)
+            case 107:
+                oprel = token.getLexeme();
+                TEMP_ESQ = GetTemp();
+                gera_cod("STO", TEMP_ESQ.nome);
+                break;
+
+            case 108:
+                TEMP_DIR = GetTemp();
+                gera_cod("STO", TEMP_DIR.nome);
+                gera_cod("LD", TEMP_ESQ.nome);
+                gera_cod("SUB", TEMP_DIR.nome);
+                break;
+
+            case 109:
+                rotIf = newRotulo();
+                pilhaRotulo.push(rotIf);
+                geraSaltoCondicional(oprel, rotIf, false);
+                break;
+
+            case 110:
+                rotFim = pilhaRotulo.pop();
+                gera_cod("ROT", rotFim);
+                break;
+
+            case 111:
+                rotIf = pilhaRotulo.pop();
+                rotFim = newRotulo();
+                gera_cod("JMP", rotFim);
+                pilhaRotulo.push(rotFim);
+                gera_cod("ROT", rotIf);
+                break;
+
+            case 112:
+                rotIni = newRotulo();
+                pilhaRotulo.push(rotIni);
+                gera_cod("ROT", rotIni);
+                break;
+
+            case 113:
+                rotFim = newRotulo();
+                pilhaRotulo.push(rotFim);
+                geraSaltoCondicional(oprel, rotFim, false);
+                break;
+
+            case 114:
+                rotFim = pilhaRotulo.pop();
+                rotIni = pilhaRotulo.pop();
+                gera_cod("JMP", rotIni);
+                gera_cod("ROT", rotFim);
+                break;
+
+            case 115:
+                rotIni = newRotulo();
+                pilhaRotulo.push(rotIni);
+                gera_cod("ROT", rotIni);
+                break;
+
+            case 116:
+                rotIni = pilhaRotulo.pop();
+                geraSaltoCondicional(oprel, rotIni, true);
+                break;
         }
     }
 
@@ -362,10 +447,15 @@ public class Semantico implements Constants
          →Se não encontra cria um novo temp na lista
         retorna-o e seta livre para False
     */
+    private String newRotulo(){
+        rotCount += 1;
+        return "R" + (rotCount);
+    }
+
     private Simbolo GetTemp(){
         Simbolo simbolo = escopoAtual.buscarTempLivre();
         if (simbolo == null) {
-            String novoNome = "temp" + (escopoAtual.getTempCount());
+            String novoNome = "temp" + (escopoAtual.getTempCount() + 1);
             simbolo = new Simbolo(novoNome, 0, escopoAtual);
             simbolo.inicializada = true;
             simbolo.isTemp = true;
@@ -385,6 +475,56 @@ public class Semantico implements Constants
 
         if (temporario != null){
             temporario.isLivre = true;
+        }
+    }
+
+    private void geraSaltoCondicional(String oprel, String nomeRotulo, boolean useExpLogic) {
+        switch (oprel) {
+            case ">":
+                if (useExpLogic){
+                    gera_cod("BGT", nomeRotulo);
+                } else {
+                    gera_cod("BLE", nomeRotulo); // se A > B falhar, A <= B, então salta
+                }
+
+                break;
+            case "<":
+                if (useExpLogic){
+                    gera_cod("BLT", nomeRotulo);
+                } else {
+                    gera_cod("BGE", nomeRotulo); // se A < B falhar, A >= B, então salta
+                }
+                break;
+            case "==":
+                if (useExpLogic){
+                    gera_cod("BEQ", nomeRotulo);
+                } else {
+                    gera_cod("BNE", nomeRotulo); // se A == B falhar, A != B, então salta
+                }
+                break;
+            case "!=":
+                if (useExpLogic){
+                    gera_cod("BNE", nomeRotulo);
+                } else {
+                    gera_cod("BEQ", nomeRotulo); // se A != B falhar, A == B, então salta
+                }
+                break;
+            case "<=":
+                if (useExpLogic){
+                    gera_cod("BLE", nomeRotulo);
+                } else {
+                    gera_cod("BGT", nomeRotulo); // se A <= B falhar, A > B, então salta
+                }
+                break;
+            case ">=":
+                if (useExpLogic){
+                    gera_cod("BGE", nomeRotulo);
+                } else {
+                    gera_cod("BLT", nomeRotulo); // se A >= B falhar, A < B, então salta
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Operador relacional inválido: " + oprel);
         }
     }
 
