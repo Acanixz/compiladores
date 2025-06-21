@@ -38,6 +38,12 @@ public class Semantico implements Constants
     String rotIf = "";
     String rotFim = "";
     String rotIni = "";
+    String rotFor = "";
+    String rotAposFor = "";
+    Simbolo tempFor1;
+    Simbolo tempFor2;
+    private Stack<Integer> pilhaOperandosFor = new Stack<>();
+    String ASMForIncrementBuffer = "";
     int rotCount = 0;
     
     private boolean isDeclarandoVetor = false; // Novo campo
@@ -73,6 +79,12 @@ public class Semantico implements Constants
         rotIf = "";
         rotFim = "";
         rotIni = "";
+        rotFor = "";
+        rotAposFor = "";
+        tempFor1 = null;
+        tempFor2 = null;
+        pilhaOperandosFor = new Stack<>();
+        ASMForIncrementBuffer = "";
         rotCount = 0;
     }
 
@@ -437,7 +449,61 @@ public class Semantico implements Constants
                 rotIni = pilhaRotulo.pop();
                 geraSaltoCondicional(oprel, rotIni, true);
                 break;
+
+            // Definição do rótulo do for loop
+            case 119:
+                pilhaOperandosFor.push(Integer.parseInt(token.getLexeme()));
+
+                rotFor = newRotulo();
+                pilhaRotulo.push(rotFor);
+                gera_cod("ROT", rotFor);
+
+                gera_cod("LD", nome_id_atrib);
+                tempFor1 = GetTemp();
+                gera_cod("STO", tempFor1.nome);
+                break;
+
+            // Definição da condição de conclusão for loop
+            case 120:
+                rotAposFor = newRotulo();
+                pilhaRotulo.push(rotAposFor);
+
+                tempFor2 = GetTemp();
+                gera_cod("STO", tempFor2.nome);
+                gera_cod("LD", tempFor1.nome);
+                gera_cod("SUB", tempFor2.nome);
+                geraOpRel(pilhaOperandosFor.pop(), Integer.parseInt(token.getLexeme()));
+                geraSaltoCondicional(oprel, rotAposFor, false);
+                break;
+
+            // Definição do incremento do for loop (e inicio do código dentro do for)
+            case 121:
+                ASMForIncrementBuffer += "\tLD\t" + nome_id_atrib + "\n";
+
+                ///  NÃO ESQUECE DE ME CONFERIR
+                if (oprel == ">")
+                    ASMForIncrementBuffer += "\tADDI\t" + token.getLexeme() + "\n";
+                else
+                    ASMForIncrementBuffer += "\tSUBI\t" + token.getLexeme() + "\n";
+
+                ASMForIncrementBuffer += "\tSTO\t" + nome_id_atrib + "\n";
+
+                oprel = "";
+                break;
+
+            // Fim do for loop
+            case 122:
+                asmTextSection += ASMForIncrementBuffer;
+                ASMForIncrementBuffer = "";
+                gera_cod("JMP", rotFor);
+                gera_cod("ROT", rotAposFor);
+                break;
         }
+    }
+
+    private String newRotulo(){
+        rotCount += 1;
+        return "R" + (rotCount);
     }
 
     /*
@@ -447,11 +513,6 @@ public class Semantico implements Constants
          →Se não encontra cria um novo temp na lista
         retorna-o e seta livre para False
     */
-    private String newRotulo(){
-        rotCount += 1;
-        return "R" + (rotCount);
-    }
-
     private Simbolo GetTemp(){
         Simbolo simbolo = escopoAtual.buscarTempLivre();
         if (simbolo == null) {
@@ -476,6 +537,21 @@ public class Semantico implements Constants
         if (temporario != null){
             temporario.isLivre = true;
         }
+    }
+
+    // For loop precisa gerar o simbolo de oprel manualmente
+    private void geraOpRel(int num1, int num2){
+        if (num1 > num2) {
+            oprel = "<";
+            return;
+        }
+
+        if (num1 < num2) {
+            oprel = ">";
+            return;
+        }
+
+        logger.addError("Valores de inicialização e fim do for loop são iguais", 0, null);
     }
 
     private void geraSaltoCondicional(String oprel, String nomeRotulo, boolean useExpLogic) {
