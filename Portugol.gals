@@ -108,7 +108,7 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
  | se <exp> entao #109 <lista_cmd> <r_senao> fimse #110
  | enquanto #112 "(" <exp> #113 ")" faca <lista_cmd> fim_enquanto #114
  | faca #115 <lista_cmd> enquanto "(" <exp> #116 ")"
- | para ID "<-" <exp2> ATE <exp2> passo NUM_INT <lista_cmd> fimpara
+ | para ID #21 "<-" <exp2> #22 #119 ATE <exp2> #120 passo NUM_INT #121 <lista_cmd> fimpara #122
  | leia "(" ID #7 ")"
  | leia "(" ID #7 "[" <exp2> #32 "]" ")"
  | escreva "(" <exp3> #9 ")";
