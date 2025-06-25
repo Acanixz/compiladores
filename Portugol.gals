@@ -94,7 +94,7 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
 <exp3>
 #Grammar
 // Inicio
-<prog> ::= <lista_dec><lista_cmd>;
+<prog> ::= <lista_dec><lista_cmd> | <lista_dec>;
   <lista_dec> ::= <lista_dec> <dec> | <dec>;
   <dec> ::= <tipo> <lista_id>;
   <tipo> ::= INT;
@@ -104,16 +104,17 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
 // Comandos
   <lista_cmd> ::= <lista_cmd> <cmd> | <cmd>;
  <cmd> ::= ID #21  "<-"  <exp2> #22
- | ID #21  "[" <exp2> "]" "<-" <exp2> #22
- | se <exp> entao <lista_cmd> <r_senao> fimse
- | enquanto <exp> faca <lista_cmd> fim_enquanto
- | para ID "<-" <exp2> ATE <exp2> passo NUM_INT <lista_cmd> fimpara
+ | ID #21  "[" <exp2> #31 "]" "<-" <exp2> #22
+ | se "(" <exp> ")" entao #109 <lista_cmd> <r_senao> fimse #110
+ | enquanto #112 "(" <exp> #113 ")" faca <lista_cmd> fim_enquanto #114
+ | faca #115 <lista_cmd> enquanto #123 "(" <exp> #116 ")"
+ | para #124 ID #21 "<-" <exp2> #22 #119 ATE <exp2> #120 passo NUM_INT #121 <lista_cmd> fimpara #122
  | leia "(" ID #7 ")"
- | leia "(" ID #7 "[" <exp2> "]" ")"
+ | leia "(" ID #7 "[" <exp2> #32 "]" ")"
  | escreva "(" <exp3> #9 ")";
 
 // Senão da condição se (opcional)
-<r_senao> ::= senao <lista_cmd> | î;
+<r_senao> ::= senao #111 <lista_cmd> | î;
 
 // Expressões lógicas
 <exp> ::= <exp> AND <exp1>
@@ -122,12 +123,12 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
         | <exp1>;
 
 // Expressões relacionais
-<exp1> ::= <exp1> ">" <exp2>
-         | <exp1> "<" <exp2>
-         | <exp1> ">=" <exp2>
-         | <exp1> "<=" <exp2>
-         | <exp1> "!=" <exp2>
-         | <exp1> "==" <exp2>
+<exp1> ::= <exp1> ">" #107 <exp2> #108
+         | <exp1> "<" #107 <exp2> #108
+         | <exp1> ">=" #107 <exp2> #108
+         | <exp1> "<=" #107 <exp2> #108
+         | <exp1> "!=" #107 <exp2> #108
+         | <exp1> "==" #107 <exp2> #108
          | <exp2>;
   
 // Expressões aritméticas e bit-a-bit
@@ -139,5 +140,5 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
          | <exp3>;
 
 // Termos (fatores)
-<exp3> ::= ID #5 | NUM_INT #6 | ID "[" <exp2> "]";
+<exp3> ::= ID #5 | NUM_INT #6 | ID #5 "[" <exp2> #33 "]"; 
 
