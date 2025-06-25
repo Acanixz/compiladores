@@ -234,19 +234,9 @@ public class Semantico implements Constants
                 }
                 break;
 
-            // Saida de dados (origem: variavel)
-            // NOTA: NÃO IMPLEMENTADO NO MOMENTO
-            // compare pg.14 de "Geração de Código 1" e expressão em Portugol.gals
-            // para entender
-            case 8:
-                usarVariavel(token.getLexeme());
-                gera_cod("LD", token.getLexeme());
-                gera_cod("STO", "$out_port");
-                break;
-
-            // Saida de dados (origem: immediate)
+            // Saida de dados
             case 9:
-                gera_cod("LDI", token.getLexeme());
+                // gera_cod("LDI", token.getLexeme());
                 gera_cod("STO", "$out_port");
                 break;
 
@@ -388,12 +378,14 @@ public class Semantico implements Constants
                 break;
 
             /// Casos da Geração de Código 2 - Estruturas de Controle de Fluxo (desvios e loops)
+            // Expressões relacionais, obtém operador
             case 107:
                 oprel = token.getLexeme();
                 TEMP_ESQ = GetTemp();
                 gera_cod("STO", TEMP_ESQ.nome);
                 break;
 
+            // Expressões relacionais, obtém operando direito
             case 108:
                 TEMP_DIR = GetTemp();
                 gera_cod("STO", TEMP_DIR.nome);
@@ -401,18 +393,25 @@ public class Semantico implements Constants
                 gera_cod("SUB", TEMP_DIR.nome);
                 break;
 
+            // Começo do escopo do if statement
             case 109:
                 rotIf = newRotulo();
                 pilhaRotulo.push(rotIf);
                 geraSaltoCondicional(oprel, rotIf, false);
+                enterEscopo();
                 break;
 
+            // Fim do escopo do if statement
             case 110:
                 rotFim = pilhaRotulo.pop();
                 gera_cod("ROT", rotFim);
+                exitEscopo();
                 break;
 
+            // Else statement
             case 111:
+                exitEscopo(); // Sai do escopo do if
+                enterEscopo(); // Entra no escopo do else
                 rotIf = pilhaRotulo.pop();
                 rotFim = newRotulo();
                 gera_cod("JMP", rotFim);
@@ -420,31 +419,40 @@ public class Semantico implements Constants
                 gera_cod("ROT", rotIf);
                 break;
 
+            // While statement
             case 112:
                 rotIni = newRotulo();
                 pilhaRotulo.push(rotIni);
                 gera_cod("ROT", rotIni);
                 break;
 
+            // Salto condicional e começo do escopo do while statement
             case 113:
                 rotFim = newRotulo();
                 pilhaRotulo.push(rotFim);
                 geraSaltoCondicional(oprel, rotFim, false);
+                enterEscopo();
                 break;
 
+            // Fim do while statement
             case 114:
                 rotFim = pilhaRotulo.pop();
                 rotIni = pilhaRotulo.pop();
                 gera_cod("JMP", rotIni);
                 gera_cod("ROT", rotFim);
+                exitEscopo();
                 break;
 
+            // Começo do escopo do DO WHILE statement
             case 115:
                 rotIni = newRotulo();
                 pilhaRotulo.push(rotIni);
                 gera_cod("ROT", rotIni);
+                enterEscopo();
                 break;
 
+            // Fim do DO WHILE statement e Salto condicional
+            // NOTA: caso 123 trata fim do escopo antecipadamente
             case 116:
                 rotIni = pilhaRotulo.pop();
                 geraSaltoCondicional(oprel, rotIni, true);
@@ -497,6 +505,17 @@ public class Semantico implements Constants
                 ASMForIncrementBuffer = "";
                 gera_cod("JMP", rotFor);
                 gera_cod("ROT", rotAposFor);
+                exitEscopo();
+                break;
+
+            // Fim do escopo do DO WHILE
+            case 123:
+                exitEscopo();
+                break;
+
+            // Começo do escopo do for loop
+            case 124:
+                enterEscopo();
                 break;
         }
     }
@@ -504,6 +523,19 @@ public class Semantico implements Constants
     private String newRotulo(){
         rotCount += 1;
         return "R" + (rotCount);
+    }
+
+    private void enterEscopo() {
+        // gera nome aleatório para escopo
+        int proximoInt = escopoAtual.children.size() + 1;
+        String nomeEscopo = escopoAtual.getNome() + "_" + proximoInt;
+        Escopo novoEscopo = new Escopo(nomeEscopo, escopoAtual);
+        escopoAtual.children.add(novoEscopo);
+        escopoAtual = novoEscopo;
+    }
+
+    private void exitEscopo() {
+        escopoAtual = escopoAtual.getParent();
     }
 
     /*
@@ -520,6 +552,7 @@ public class Semantico implements Constants
             simbolo = new Simbolo(novoNome, 0, escopoAtual);
             simbolo.inicializada = true;
             simbolo.isTemp = true;
+            simbolo.usada = true;
             escopoAtual.getSimbolos().put(novoNome, simbolo);
             asmTempDataSection += simbolo.nome + ": 0\n";
         }
@@ -541,12 +574,12 @@ public class Semantico implements Constants
 
     // For loop precisa gerar o simbolo de oprel manualmente
     private void geraOpRel(int num1, int num2){
-        if (num1 > num2) {
+        if (num1 < num2) {
             oprel = "<";
             return;
         }
 
-        if (num1 < num2) {
+        if (num1 > num2) {
             oprel = ">";
             return;
         }
