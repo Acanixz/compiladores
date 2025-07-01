@@ -97,7 +97,7 @@ public class Semantico implements Constants
     }
 
     private void gera_cod(String nome, String valor){
-        List<String> operadores = List.of("LD", "ADD", "SUB", "AND", "XOR", "OR", "LDI", "ADDI", "SUBI", "ANDI", "XORI", "ORI", "STO", "STOV", "JMP", "BLE", "BGE", "BNE", "BEQ", "BGT", "BLT", "ROT");
+        List<String> operadores = List.of("LD", "ADD", "SUB", "AND", "XOR", "OR", "LDI", "ADDI", "SUBI", "ANDI", "XORI", "ORI", "STO", "STOV", "JMP", "BLE", "BGE", "BNE", "BEQ", "BGT", "BLT", "ROT", "RETURN", "HLT", "CALL");
 
         if (operadores.contains(nome)){
             if (nome.equals("ROT")){
@@ -119,12 +119,14 @@ public class Semantico implements Constants
             }
         } else {
             System.out.println("[ALERTA] Comando não reconhecido pelo gerador ASM: " + nome);
+            asmDataSection += nome + ": 0\n";
         }
     }
 
     public void executeAction(int action, Token token)	throws SemanticError
     {
         System.out.println("Ação #" + action + ", Token: " + token);
+        String lexeme = token.getLexeme();
         switch (action){
             /// Casos da Geração de Código 1 - Instruções Sequenciais com Vetores
 
@@ -167,26 +169,34 @@ public class Semantico implements Constants
                 usarVariavel(token.getLexeme());
                 Simbolo s = escopoAtual.buscarSimbolo(token.getLexeme()); // Busca o símbolo na tabela
                 if (s != null && s.isVetor) { // SE o ID é um vetor
-                    idParaAcessoVetor = token.getLexeme(); // Armazena o nome do vetor para uso posterior (em #33)
+                    if (s.escopo != escopoGlobal){
+                        lexeme = s.escopo + "_" + lexeme;
+                    }
+
+                    idParaAcessoVetor = lexeme; // Armazena o nome do vetor para uso posterior (em #33)
                     // NADA DE GERAÇÃO DE CÓDIGO AQUI. O LDV será gerado no case 33.
                 } else { // SE o ID é uma variável simples (não um vetor)
+                    if (s.escopo != escopoGlobal){
+                        lexeme = s.escopo + "_" + lexeme;
+                    }
+
                     if (!flagOp) {
-                        gera_cod("LD", token.getLexeme());
+                        gera_cod("LD", lexeme);
                     } else {
                         if (Objects.equals(oper, "+")) {
-                            gera_cod("ADD", token.getLexeme());
+                            gera_cod("ADD", lexeme);
                         }
                         if (Objects.equals(oper, "-")) {
-                            gera_cod("SUB", token.getLexeme());
+                            gera_cod("SUB", lexeme);
                         }
                         if (Objects.equals(oper, "&")) {
-                            gera_cod("AND", token.getLexeme());
+                            gera_cod("AND", lexeme);
                         }
                         if (Objects.equals(oper, "^")) {
-                            gera_cod("XOR", token.getLexeme());
+                            gera_cod("XOR", lexeme);
                         }
                         if (Objects.equals(oper, "|")) {
-                            gera_cod("OR", token.getLexeme());
+                            gera_cod("OR", lexeme);
                         }
                     }
                 }
@@ -244,8 +254,12 @@ public class Semantico implements Constants
 
             // Nome p/ atribuição em variavel
             case 21:
-                usarVariavel(token.getLexeme());
-                nome_id_atrib = token.getLexeme();
+                Simbolo temp = usarVariavel(token.getLexeme());
+
+                if (temp != null && temp.escopo != escopoGlobal){
+                    lexeme = temp.escopo.getNome() + "_" + lexeme;
+                }
+                nome_id_atrib = lexeme;
                 break;
 
             // Geração de código (atribuição de variavel)
@@ -520,13 +534,24 @@ public class Semantico implements Constants
                 enterEscopo();
                 break;
 
+            /// Casos da Geração de Código 3 - Subrotinas
             case 201:
                 nome = token.getLexeme();
+
+                simboloAtual = criarVariavel(token.getLexeme(), 0);
+
+                if (simboloAtual != null) {
+                    simboloAtual.inicializada = true;
+                    simboloAtual.isFuncao = true;
+                }
+
+                enterEscopo(nome);
                 gera_cod("ROT", "_" + nome);
                 break;
 
             case 202:
                 gera_cod("RETURN", "0");
+                exitEscopo();
                 break;
 
             case 203:
@@ -536,14 +561,89 @@ public class Semantico implements Constants
 
             case 204:
                 gera_cod("LD", token.getLexeme()); // ver se é valor ou id
-                gera_cod("STO", getParname(nome_call, contpar));
+                gera_cod("STO", nome_call + "_" + getParname(nome_call, contpar));
+                contpar++;
                 break;
 
             case 205:
                 gera_cod ("CALL", "_" + nome_call);
                 break;
+
+            // Declaração de parametros
+            case 206:
+                parameterPosition++;
+                // OBS: BIP usa apenas integers, tipo sempre 0
+                if(nome != null){ // Garante que há um nome para processar
+                    // nome = escopoAtual.getNome() + "_" + nome;
+                    // Se isDeclarandoVetor for true, o case 30 já tratou, e este case 3 não faz nada
+                    if(!isDeclarandoVetor){
+                        Simbolo parametro = criarVariavel(nome, 0);
+
+                        if (parametro != null){
+                            parametro.isParametro = true;
+                            parametro.parametroPosicao = parameterPosition;
+                        }
+
+                        gera_cod(escopoAtual.getNome() + "_" + nome, valor);
+                    }
+                }
+                // Limpa as variáveis de estado para a próxima declaração/comando
+                nome = null;
+                valor = null;
+                flagOp = false;
+                oper = null;
+                isDeclarandoVetor = false; // <--- LIMPA A FLAG AQUI!
+                break;
+
+            // Fim da declaração de parametros
+            case 207:
+                parameterPosition = -1;
+                break;
         }
     }
+
+    public String getParname(String nomeCall, int contpar) {
+        Escopo escopoVerif = escopoAtual; // ou receba o escopo como parâmetro
+
+        while (escopoVerif != null) {
+            // primeiro, procure o símbolo da função
+            Simbolo func = null;
+            for (Simbolo s : escopoVerif.getSimbolos().values()) {
+                if (s.isFuncao && s.nome.equals(nomeCall)) {
+                    func = s;
+                    break;
+                }
+            }
+
+            // se achou a função, procure o parâmetro na mesma tabela
+            if (func != null) {
+                Escopo escopoFunc = null;
+                for (Escopo e : func.escopo.children){
+                    if (e.getNome().equals(func.nome)){
+                        escopoFunc = e;
+                    }
+                }
+
+                if (escopoFunc != null){
+                    for (Simbolo s : escopoFunc.getSimbolos().values()) {
+                        if (s.isParametro
+                                && s.parametroPosicao == contpar
+                            // opcional: garantir que esse parâmetro pertence à função certa,
+                            // caso haja algum link, como s.getFuncaoPai() == func
+                        ) {
+                            return s.nome;
+                        }
+                    }
+                }
+            }
+
+            escopoVerif = escopoVerif.getParent();
+        }
+
+        // se não encontrou nada, devolve null (ou lança exceção, se preferir)
+        return null;
+    }
+
 
     private String newRotulo(){
         rotCount += 1;
@@ -554,6 +654,13 @@ public class Semantico implements Constants
         // gera nome aleatório para escopo
         int proximoInt = escopoAtual.children.size() + 1;
         String nomeEscopo = escopoAtual.getNome() + "_" + proximoInt;
+        Escopo novoEscopo = new Escopo(nomeEscopo, escopoAtual);
+        escopoAtual.children.add(novoEscopo);
+        escopoAtual = novoEscopo;
+    }
+
+    private void enterEscopo(String nomeEscopo) {
+        // gera nome aleatório para escopo
         Escopo novoEscopo = new Escopo(nomeEscopo, escopoAtual);
         escopoAtual.children.add(novoEscopo);
         escopoAtual = novoEscopo;
@@ -703,4 +810,6 @@ public class Semantico implements Constants
         }
         return simbolo;
     }
+
+
 }
