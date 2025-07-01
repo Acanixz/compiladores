@@ -45,6 +45,8 @@ public class Semantico implements Constants
     private Stack<Integer> pilhaOperandosFor = new Stack<>();
     String ASMForIncrementBuffer = "";
     int rotCount = 0;
+    String nome_call = "";
+    int contpar = 0;
     
     private boolean isDeclarandoVetor = false; // Novo campo
     private String idParaAcessoVetor = null; // <-- ADICIONADO AQUI
@@ -516,6 +518,29 @@ public class Semantico implements Constants
             // Começo do escopo do for loop
             case 124:
                 enterEscopo();
+                break;
+
+            case 201:
+                nome = token.getLexeme();
+                gera_cod("ROT", "_" + nome);
+                break;
+
+            case 202:
+                gera_cod("RETURN", "0");
+                break;
+
+            case 203:
+                nome_call = token.getLexeme();
+                contpar = 0;
+                break;
+
+            case 204:
+                gera_cod("LD", token.getLexeme()); // ver se é valor ou id
+                gera_cod("STO", getParname(nome_call, contpar));
+                break;
+
+            case 205:
+                gera_cod ("CALL", "_" + nome_call);
                 break;
         }
     }
