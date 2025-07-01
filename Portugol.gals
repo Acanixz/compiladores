@@ -21,13 +21,14 @@ INT: "inteiro"
 se: "se"
 entao: "entao"
 senao: "senao"
-fimse: "fimse"
+fim_se: "fim_se"
 
 // 3. Laços de repetição
 enquanto: "enquanto"
 fim_enquanto: "fimenquanto"
+faca_enquanto: "faca_enquanto"
 para: "para"
-fimpara: "fimpara"
+fim_para: "fim_para"
 ATE: "ate"
 passo: "passo"
 faca: "faca"
@@ -40,6 +41,13 @@ escreva: "escreva"
 AND: "AND"
 OR: "OR"
 NOT: "NOT"
+
+// 6. Rotinas e Parâmetros
+inicio: "inicio"
+fim_func: "fim_func"
+fim_proc: "fim_proc"
+procedimento: "procedimento"
+retornar: "retornar"
 
 // LITERAIS
 NUM_INT: 0[bB][01]+ | 0[xX][0-9a-fA-F]+ | [0-9]+
@@ -61,6 +69,8 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
 "]" // Vetor (fecha)
 "(" // Funções e precedência (abre)
 ")" // Funções e precedência (fecha)
+"{"
+"}"
 
 // 4. Operadores Relacionais
 ">"
@@ -80,38 +90,56 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
 :[\ \n\t]
 #NonTerminals
 <prog>
-<lista_dec>
+<lista_global>
+<global>
 <dec>
 <tipo>
 <lista_id>
 <id>
+<lista_par>
+<lista_args>
 <lista_cmd>
 <cmd>
+<id_leia>
 <r_senao>
 <exp>
 <exp1>
 <exp2>
 <exp3>
+<func>
+<retornar>
 #Grammar
 // Inicio
-<prog> ::= <lista_dec><lista_cmd> | <lista_dec>;
-  <lista_dec> ::= <lista_dec> <dec> | <dec>;
-  <dec> ::= <tipo> <lista_id>;
-  <tipo> ::= INT;
-  <lista_id> ::= <id> #3 "," <lista_id>| <id> #3;
-  <id> ::= ID #1 | ID #1 "<-" NUM_INT #2 | ID #1 "[" NUM_INT #30 "]";
-  
+<prog> ::= <lista_global>;
+<lista_global> ::= <lista_global> <global> | <global>;
+<global> ::= <dec> | <func>;
+
+<dec> ::= <tipo> <lista_id>;
+<tipo> ::= INT;
+<lista_id> ::= <id> #3 "," <lista_id>| <id> #3;
+<id> ::= ID #1 
+       | ID #1 "<-" NUM_INT #2 
+       | ID #1 "[" NUM_INT #30 "]";
+
+<lista_par> ::= <tipo> <id> #3 "," <lista_par> | <tipo> <id> #3 | î;
+<lista_args> ::= ID #204 "," <lista_args> | ID #204;
+
 // Comandos
-  <lista_cmd> ::= <lista_cmd> <cmd> | <cmd>;
- <cmd> ::= ID #21  "<-"  <exp2> #22
- | ID #21  "[" <exp2> #31 "]" "<-" <exp2> #22
- | se "(" <exp> ")" entao #109 <lista_cmd> <r_senao> fimse #110
- | enquanto #112 "(" <exp> #113 ")" faca <lista_cmd> fim_enquanto #114
- | faca #115 <lista_cmd> enquanto #123 "(" <exp> #116 ")"
- | para #124 ID #21 "<-" <exp2> #22 #119 ATE <exp2> #120 passo NUM_INT #121 <lista_cmd> fimpara #122
- | leia "(" ID #7 ")"
- | leia "(" ID #7 "[" <exp2> #32 "]" ")"
- | escreva "(" <exp3> #9 ")";
+<lista_cmd> ::= <lista_cmd> <cmd> | <cmd>;
+<cmd> ::= ID #21  "<-"  <exp2> #22
+        | ID #21  "[" <exp2> #31 "]" "<-" <exp2> #22
+        | se "(" <exp> ")" entao #109 <lista_cmd> <r_senao> fim_se #110
+        | enquanto #112 "(" <exp> #113 ")" faca <lista_cmd> fim_enquanto #114
+        | faca #115 <lista_cmd> faca_enquanto #123 "(" <exp> #116 ")"
+        | para #124 ID #21 "<-" <exp2> #22 #119 ATE <exp2> #120 passo NUM_INT #121 <lista_cmd> fim_para #122
+        | leia "(" <id_leia> ")"
+        | escreva "(" <exp3> #9 ")"
+        | ID #203 "(" <lista_args> ")" #205
+        | <func>;
+
+<id_leia> ::= ID #7
+            | ID #7 "[" <exp2> #32 "]"
+            | ID #203 "(" <lista_args> ")" #205;
 
 // Senão da condição se (opcional)
 <r_senao> ::= senao #111 <lista_cmd> | î;
@@ -140,5 +168,15 @@ ID: [a-zA-Z_]?[a-zA-Z0-9_]*[a-zA-Z0-9]
          | <exp3>;
 
 // Termos (fatores)
-<exp3> ::= ID #5 | NUM_INT #6 | ID #5 "[" <exp2> #33 "]"; 
-
+<exp3> ::= ID #5 
+         | NUM_INT #6 
+         | ID #5 "[" <exp2> #33 "]"
+         | ID #203 "(" <lista_args> ")" #205;
+ 
+// Rotinas e Parâmetros
+<func> ::= <tipo> ID #201 "(" <lista_par> ")" inicio <lista_cmd> <retornar> fim_func #202
+         | <tipo> ID #201 "(" <lista_par> ")" inicio <retornar> fim_func #202
+         | procedimento ID #201 "(" <lista_par> ")" inicio <lista_cmd> fim_proc #202
+         | procedimento ID #201 "(" <lista_par> ")" inicio fim_proc #202;
+         
+<retornar> ::= retornar "(" <exp> ")";
