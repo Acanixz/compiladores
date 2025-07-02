@@ -125,7 +125,11 @@ public class IDE_Form extends JFrame{
                         Simbolo simbolo = simbolos.get(i);
 
                         if (!simbolo.usada){
-                            logger.addWarning("Variavel declarada, mas não utilizada: " + simbolo.nome, 0, "");
+                            if (!simbolo.isFuncao){
+                                logger.addWarning("Variavel declarada, mas não utilizada: " + simbolo.nome, 0, "");
+                            } else {
+                                logger.addWarning("Função declarada, mas não utilizada: " + simbolo.nome, 0, "");
+                            }
                         }
                     }
 

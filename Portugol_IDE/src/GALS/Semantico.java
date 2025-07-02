@@ -3,6 +3,7 @@ package GALS;
 import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
+import java.util.regex.*;
 
 public class Semantico implements Constants
 {
@@ -21,7 +22,7 @@ public class Semantico implements Constants
     /// NOVO CÓDIGO DO BIP, CÓDIGO ACIMA MANTIDO APENAS POR GARANTIA, REMOVER NÃO UTILIZADOS APÓS CONCLUSÃO
     private String asmDataSection = ".data\n";
     private String asmTempDataSection = "";
-    private String asmTextSection = ".text\n";
+    private String asmTextSection = "";
     Boolean lendoSecaoData = true;
     Boolean primeiroCode = true;
     String nome;
@@ -47,7 +48,9 @@ public class Semantico implements Constants
     int rotCount = 0;
     String nome_call = "";
     int contpar = 0;
-    
+    int paramsValidados = 0;
+    int maiorParam = 0;
+
     private boolean isDeclarandoVetor = false; // Novo campo
     private String idParaAcessoVetor = null; // <-- ADICIONADO AQUI
     private String nomeTempIndice = null; // Armazenará o nome da temp para o índice do vetor
@@ -88,11 +91,22 @@ public class Semantico implements Constants
         pilhaOperandosFor = new Stack<>();
         ASMForIncrementBuffer = "";
         rotCount = 0;
+        nome_call = "";
+        contpar = 0;
+        paramsValidados = 0;
+        maiorParam = 0;
     }
 
     // Junta as seções de declaração e código em uma string ASM legivel pelo Bipide 3.0
     // Download: https://sourceforge.net/projects/bipide/
     public String compilar_ASM(){
+        for (Escopo escopoFilho : escopoGlobal.children){
+            if (escopoFilho.getNome().equals("principal")){
+                asmTextSection = "\tJMP _principal\n" + asmTextSection;
+            }
+        }
+
+        asmTextSection = ".text\n" + asmTextSection;
         return asmDataSection + "\n" + asmTempDataSection + "\n" + asmTextSection;
     }
 
@@ -543,6 +557,10 @@ public class Semantico implements Constants
                 if (simboloAtual != null) {
                     simboloAtual.inicializada = true;
                     simboloAtual.isFuncao = true;
+
+                    if (nome.equals("principal")){
+                        simboloAtual.usada = true;
+                    }
                 }
 
                 enterEscopo(nome);
@@ -550,22 +568,40 @@ public class Semantico implements Constants
                 break;
 
             case 202:
-                gera_cod("RETURN", "0");
+                if (escopoAtual.getNome().equals("principal")){
+                    gera_cod("HLT", "0");
+                } else {
+                    gera_cod("RETURN", "0");
+                }
                 exitEscopo();
                 break;
 
             case 203:
                 nome_call = token.getLexeme();
+                usarVariavel(nome_call);
                 contpar = 0;
                 break;
 
             case 204:
-                gera_cod("LD", token.getLexeme()); // ver se é valor ou id
+                if (escopoAtual.buscarSimbolo(token.getLexeme()) != null){
+                    gera_cod("LD", token.getLexeme()); // ver se é valor ou id
+                    usarVariavel(token.getLexeme());
+                } else {
+                    if (Pattern.matches("0[bB][01]+|0[xX][0-9a-fA-F]+|[0-9]+", token.getLexeme())) {
+                        gera_cod("LDI", token.getLexeme());
+                    } else {
+                        usarVariavel(token.getLexeme()); // Só para acionar o erro de var não encontrada
+                    }
+                }
+
                 gera_cod("STO", nome_call + "_" + getParname(nome_call, contpar));
                 contpar++;
                 break;
 
             case 205:
+                if (paramsValidados < maiorParam){
+                    logger.addError("Era esperado " + maiorParam + " params, recebeu apenas " + paramsValidados, 0, "");
+                }
                 gera_cod ("CALL", "_" + nome_call);
                 break;
 
@@ -625,15 +661,25 @@ public class Semantico implements Constants
                 }
 
                 if (escopoFunc != null){
+                    maiorParam = 0;
+                    for (Simbolo s : escopoFunc.getSimbolos().values()) {
+                        if (s.isParametro) {
+                            maiorParam++;
+                        }
+                    }
+
                     for (Simbolo s : escopoFunc.getSimbolos().values()) {
                         if (s.isParametro
                                 && s.parametroPosicao == contpar
                             // opcional: garantir que esse parâmetro pertence à função certa,
                             // caso haja algum link, como s.getFuncaoPai() == func
                         ) {
+                            paramsValidados++;
                             return s.nome;
                         }
                     }
+
+                    logger.addError("Era esperado " + maiorParam + " params, mas recebeu " + (contpar+1), 0, "");
                 }
             }
 
