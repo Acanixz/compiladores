@@ -518,8 +518,7 @@ public class Semantico implements Constants
             case 121:
                 ASMForIncrementBuffer += "\tLD\t" + nome_id_atrib + "\n";
 
-                ///  NÃO ESQUECE DE ME CONFERIR
-                if (oprel == ">")
+                if (oprel == "<")
                     ASMForIncrementBuffer += "\tADDI\t" + token.getLexeme() + "\n";
                 else
                     ASMForIncrementBuffer += "\tSUBI\t" + token.getLexeme() + "\n";
